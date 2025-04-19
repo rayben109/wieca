@@ -58,7 +58,14 @@ export default function Header() {
       <div className="container flex h-16 items-center">
         <div className="flex items-center gap-2 font-bold text-xl">
           <Link href="/" className="flex items-center gap-2 text-[#DB7C27]">
-            WIECA Mentor Connect
+            <Image
+                src="/logo-icon-white"
+                alt="WIECA Mentor Connect"
+                width={100}
+                height={100}
+                className="rounded-lg object-cover"
+                priority
+              />
           </Link>
         </div>
 
