@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { Button } from "@/components/ui/button"
 import { ArrowRight, Mail, MapPin, Phone } from "lucide-react"
 
 export default function Home() {
@@ -29,14 +29,15 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center justify-center">
-              <Image
-                src="/mentorship.jpg"
-                alt="WIECA Mentor Connect"
-                width={400}
-                height={400}
-                className="rounded-lg object-cover"
-                priority
-              />
+              <div className="relative w-full max-w-md aspect-[4/3] rounded-lg overflow-hidden shadow-xl">
+                <Image
+                  src="/mentorship.jpeg"
+                  alt="Mentorship in renewable energy"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -267,6 +268,9 @@ export default function Home() {
               <p className="text-gray-500 dark:text-gray-400">
                 Sign up and build your detailed profile showcasing your experience, interests, and goals.
               </p>
+              <div className="relative h-40 w-full rounded-lg overflow-hidden shadow-md">
+                <Image src="/profile-creation.jpg" alt="Creating a profile" fill className="object-cover" />
+              </div>
             </div>
             <div className="flex flex-col justify-center space-y-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#DB7C27] text-white">2</div>
@@ -274,6 +278,9 @@ export default function Home() {
               <p className="text-gray-500 dark:text-gray-400">
                 Browse through potential mentors or receive AI-powered recommendations based on your profile.
               </p>
+              <div className="relative h-40 w-full rounded-lg overflow-hidden shadow-md">
+                <Image src="/mentor-matching.jpg" alt="Finding a mentor match" fill className="object-cover" />
+              </div>
             </div>
             <div className="flex flex-col justify-center space-y-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#DB7C27] text-white">3</div>
@@ -281,6 +288,9 @@ export default function Home() {
               <p className="text-gray-500 dark:text-gray-400">
                 Send mentorship requests and start building valuable professional relationships.
               </p>
+              <div className="relative h-40 w-full rounded-lg overflow-hidden shadow-md">
+                <Image src="/mentorship-meeting.jpg" alt="Mentorship meeting" fill className="object-cover" />
+              </div>
             </div>
           </div>
         </div>
@@ -300,14 +310,8 @@ export default function Home() {
           <div className="mx-auto grid max-w-5xl gap-6 py-12 lg:grid-cols-2 lg:gap-12">
             <div className="flex flex-col justify-center space-y-4 rounded-lg border p-6 shadow-sm">
               <div className="flex items-center space-x-4">
-                <div className="rounded-full bg-gray-200 h-12 w-12 overflow-hidden">
-                  <Image
-                    src="/placeholder.svg?height=48&width=48"
-                    alt="Sarah Johnson"
-                    width={48}
-                    height={48}
-                    className="h-full w-full object-cover"
-                  />
+                <div className="relative h-12 w-12 overflow-hidden rounded-full">
+                  <Image src="/testimonial-1.jpg" alt="Sarah Johnson" fill className="object-cover" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold">Sarah Johnson</h3>
@@ -321,14 +325,8 @@ export default function Home() {
             </div>
             <div className="flex flex-col justify-center space-y-4 rounded-lg border p-6 shadow-sm">
               <div className="flex items-center space-x-4">
-                <div className="rounded-full bg-gray-200 h-12 w-12 overflow-hidden">
-                  <Image
-                    src="/placeholder.svg?height=48&width=48"
-                    alt="Michael Chen"
-                    width={48}
-                    height={48}
-                    className="h-full w-full object-cover"
-                  />
+                <div className="relative h-12 w-12 overflow-hidden rounded-full">
+                  <Image src="/testimonial-2.jpg" alt="Michael Chen" fill className="object-cover" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold">Michael Chen</h3>
@@ -373,7 +371,9 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-[#DB7C27]">WIECA Mentor Connect</h3>
+              <div className="relative h-10 w-40">
+                <Image src="/logo.png" alt="WIECA Mentor Connect" fill className="object-contain" />
+              </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Connecting professionals in the renewable energy sector to foster growth, innovation, and knowledge
                 sharing.

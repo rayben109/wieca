@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -56,9 +57,11 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <div className="flex items-center gap-2 font-bold text-xl">
-          <Link href="/" className="flex items-center gap-2 text-[#DB7C27]">
-            <span className="text-[#DB7C27] font-bold">WIECA</span>
+        <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="relative h-8 w-32 sm:w-40">
+              <Image src="/logo.png" alt="WIECA Mentor Connect" fill className="object-contain" priority />
+            </div>
           </Link>
         </div>
 
@@ -139,7 +142,12 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
-              <nav className="flex flex-col gap-4 mt-8">
+              <div className="flex justify-center mb-6 mt-4">
+                <div className="relative h-8 w-40">
+                  <Image src="/logo.png" alt="WIECA Mentor Connect" fill className="object-contain" />
+                </div>
+              </div>
+              <nav className="flex flex-col gap-4">
                 {navigation.map((item) => (
                   <Link
                     key={item.name}
