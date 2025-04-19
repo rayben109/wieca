@@ -68,11 +68,11 @@
     "mongodb-client-encryption": "latest",
     "@aws-sdk/credential-providers": "latest",
     "next-auth": "latest",
-    "mongodb": "latest",
-    "@react-email/render": "latest",
     "@react-email/components": "latest",
+    "mongodb": "latest",
     "bcryptjs": "latest",
-    "crypto": "latest"
+    "crypto": "latest",
+    "@react-email/render": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
