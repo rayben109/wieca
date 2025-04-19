@@ -30,7 +30,7 @@ export default function Home() {
             </div>
             <div className="flex items-center justify-center">
               <Image
-                src="/placeholder.svg?height=400&width=400"
+                src="/mentorship.jpg"
                 alt="WIECA Mentor Connect"
                 width={400}
                 height={400}
