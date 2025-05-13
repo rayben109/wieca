@@ -269,7 +269,7 @@ export default function Home() {
                 Sign up and build your detailed profile showcasing your experience, interests, and goals.
               </p>
               <div className="relative h-40 w-full rounded-lg overflow-hidden shadow-md">
-                <Image src="/profile-creation.jpg" alt="Creating a profile" fill className="object-cover" />
+                <Image src="/profile-creation.png" alt="Creating a profile" fill className="object-cover" />
               </div>
             </div>
             <div className="flex flex-col justify-center space-y-4">
@@ -279,7 +279,7 @@ export default function Home() {
                 Browse through potential mentors or receive AI-powered recommendations based on your profile.
               </p>
               <div className="relative h-40 w-full rounded-lg overflow-hidden shadow-md">
-                <Image src="/mentor-matching.jpg" alt="Finding a mentor match" fill className="object-cover" />
+                <Image src="/mentor-matching.png" alt="Finding a mentor match" fill className="object-cover" />
               </div>
             </div>
             <div className="flex flex-col justify-center space-y-4">
