@@ -11,8 +11,14 @@ const options: MongoClientOptions = {
     strict: true,
     deprecationErrors: true,
   },
-  connectTimeoutMS: 10000, // 10 seconds timeout
-  socketTimeoutMS: 45000, // 45 seconds timeout
+  // Increase timeouts for production environments
+  connectTimeoutMS: 30000, // 30 seconds timeout (increased from 10s)
+  socketTimeoutMS: 60000, // 60 seconds timeout (increased from 45s)
+  // Add retry capability
+  retryWrites: true,
+  retryReads: true,
+  maxPoolSize: 50, // Increase connection pool size
+  minPoolSize: 5, // Maintain minimum connections
 }
 
 let client
@@ -27,20 +33,36 @@ if (process.env.NODE_ENV === "development") {
 
   if (!globalWithMongo._mongoClientPromise) {
     client = new MongoClient(uri, options)
-    globalWithMongo._mongoClientPromise = client.connect()
+    globalWithMongo._mongoClientPromise = client.connect().catch((error) => {
+      console.error("Failed to connect to MongoDB in development:", error)
+      throw error
+    })
   }
   clientPromise = globalWithMongo._mongoClientPromise
 } else {
   // In production mode, it's best to not use a global variable.
   client = new MongoClient(uri, options)
-  clientPromise = client.connect()
+  clientPromise = client.connect().catch((error) => {
+    console.error("Failed to connect to MongoDB in production:", error)
+    throw error
+  })
 }
 
 // Connection status tracking
 let isConnected = false
+let lastConnectionAttempt = 0
+const CONNECTION_RETRY_INTERVAL = 30000 // 30 seconds
 
 export async function connectToDatabase() {
   try {
+    // Check if we've recently tried to connect and failed
+    const now = Date.now()
+    if (!isConnected && now - lastConnectionAttempt < CONNECTION_RETRY_INTERVAL) {
+      console.log("Skipping connection attempt due to recent failure, will retry later")
+      throw new Error("MongoDB connection temporarily unavailable, please try again later")
+    }
+
+    lastConnectionAttempt = now
     const client = await clientPromise
 
     // Test the connection with a ping
@@ -54,7 +76,15 @@ export async function connectToDatabase() {
   } catch (error) {
     isConnected = false
     console.error("Failed to connect to database:", error)
-    throw new Error(`Database connection failed: ${error instanceof Error ? error.message : String(error)}`)
+
+    // Provide more specific error messages based on error type
+    if (error.name === "MongoServerSelectionError") {
+      throw new Error("Unable to connect to the database server. Please check your network connection and try again.")
+    } else if (error.name === "MongoNetworkError") {
+      throw new Error("Network error when connecting to database. Please check your internet connection.")
+    } else {
+      throw new Error(`Database connection failed: ${error instanceof Error ? error.message : String(error)}`)
+    }
   }
 }
 
@@ -75,18 +105,27 @@ export async function checkDatabaseConnection() {
       connected: true,
       database: "wieca_mentor_connect",
       host: new URL(process.env.MONGODB_URI).host,
+      lastConnectionAttempt,
     }
   } catch (error) {
     return {
       connected: false,
       error: error instanceof Error ? error.message : String(error),
+      lastAttempt: lastConnectionAttempt,
     }
   }
 }
 
 // Function to get connection status without making a new connection
 export function getConnectionStatus() {
-  return { isConnected }
+  return { isConnected, lastConnectionAttempt }
+}
+
+// Function to reset connection status and force a new connection attempt
+export function resetConnection() {
+  isConnected = false
+  lastConnectionAttempt = 0
+  console.log("MongoDB connection status reset, will attempt new connection on next request")
 }
 
 // Export clientPromise for use with @auth/mongodb-adapter

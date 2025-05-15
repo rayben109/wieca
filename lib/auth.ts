@@ -22,7 +22,7 @@ function validateAuthConfig() {
     try {
       new URL(process.env.NEXTAUTH_URL)
     } catch (e) {
-      console.error("NEXTAUTH_URL is not a valid URL")
+      console.error("NEXTAUTH_URL is not a valid URL:", process.env.NEXTAUTH_URL)
       if (process.env.NODE_ENV === "production") {
         throw new Error("Authentication configuration error: NEXTAUTH_URL is not a valid URL")
       }
@@ -48,16 +48,47 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Validate database connection before attempting to query
-          const db = await connectToDatabase()
-          const user = await db.collection("users").findOne({ email: credentials.email })
+          let db
+          try {
+            db = await connectToDatabase()
+          } catch (dbError) {
+            console.error("Database connection error during authentication:", dbError)
+            // Throw a specific error that NextAuth can handle
+            throw new Error(`DatabaseError: ${dbError instanceof Error ? dbError.message : String(dbError)}`)
+          }
 
-          if (!user || !user.password) {
+          // Find the user
+          const user = await db.collection("users").findOne({ email: credentials.email.toLowerCase() })
+
+          if (!user) {
+            console.log(`Authentication failed: No user found with email ${credentials.email}`)
             return null
           }
 
-          const isPasswordValid = await compare(credentials.password, user.password)
+          if (!user.password) {
+            console.error(`Authentication failed: User ${credentials.email} has no password set`)
+            return null
+          }
+
+          // Verify password with timeout protection
+          let isPasswordValid
+          try {
+            // Set a timeout for password comparison to prevent hanging
+            const passwordPromise = compare(credentials.password, user.password)
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Password verification timed out")), 5000),
+            )
+
+            isPasswordValid = await Promise.race([passwordPromise, timeoutPromise])
+          } catch (passwordError) {
+            console.error("Password verification error:", passwordError)
+            throw new Error(
+              `PasswordVerificationError: ${passwordError instanceof Error ? passwordError.message : String(passwordError)}`,
+            )
+          }
 
           if (!isPasswordValid) {
+            console.log(`Authentication failed: Invalid password for user ${credentials.email}`)
             return null
           }
 
@@ -69,6 +100,16 @@ export const authOptions: NextAuthOptions = {
           }
         } catch (error) {
           console.error("Authorization error:", error)
+
+          // Handle specific error types
+          if (error instanceof Error) {
+            if (error.message.startsWith("DatabaseError:")) {
+              throw new Error("DatabaseError")
+            } else if (error.message.startsWith("PasswordVerificationError:")) {
+              throw new Error("CredentialsSignin")
+            }
+          }
+
           // Rethrow with more context for better debugging
           throw new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}`)
         }

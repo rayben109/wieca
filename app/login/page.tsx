@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import { Eye, EyeOff, AlertCircle } from "lucide-react"
+import { handleAuthError } from "@/lib/fetch-utils"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -45,17 +46,17 @@ export default function LoginPage() {
   // Handle error messages from URL
   useEffect(() => {
     if (error) {
-      const errorMessages: Record<string, string> = {
-        CredentialsSignin: "Invalid email or password. Please try again.",
-        SessionRequired: "Please sign in to access this page.",
-        AccessDenied: "You do not have permission to access this page.",
-        Default: "An error occurred. Please try again.",
-      }
-
       setFormErrors((prev) => ({
         ...prev,
-        general: errorMessages[error] || errorMessages.Default,
+        general: handleAuthError(error),
       }))
+
+      // Also show toast for better visibility
+      toast({
+        title: "Authentication Error",
+        description: handleAuthError(error),
+        variant: "destructive",
+      })
     }
 
     if (registered) {
@@ -117,12 +118,21 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setFormErrors((prev) => ({ ...prev, general: "Invalid email or password. Please try again." }))
+        // Handle specific error types
+        const errorMessage = handleAuthError(result.error)
+        setFormErrors((prev) => ({ ...prev, general: errorMessage }))
+
         toast({
           title: "Login failed",
-          description: "Invalid email or password. Please try again.",
+          description: errorMessage,
           variant: "destructive",
         })
+
+        // If it's a database error, redirect to the error page
+        if (result.error === "DatabaseError") {
+          router.push(`/auth-error?error=${result.error}`)
+          return
+        }
       } else {
         toast({
           title: "Login successful",
