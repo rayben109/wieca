@@ -137,3 +137,15 @@ export interface AdminStats {
     status: string
   }[]
 }
+
+export interface User {
+  id: string
+  name: string
+  email: string
+  role: string
+  status: string
+  createdAt: string
+  image?: string
+  emailVerified?: boolean
+  _id: string
+}
