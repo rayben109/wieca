@@ -1,17 +1,19 @@
 "use server"
 
-import { hash } from "bcryptjs"
+import { hash, compare } from "bcryptjs"
 import { connectToDatabase } from "@/lib/mongodb"
 import crypto from "crypto"
 import { sendEmailNotification } from "@/lib/email"
+import { ObjectId } from "mongodb"
 
 interface RegisterUserParams {
+  name: string
   email: string
   password: string
   role: string
 }
 
-export async function registerUser({ email, password, role }: RegisterUserParams) {
+export async function registerUser({ name, email, password, role }: RegisterUserParams) {
   try {
     const db = await connectToDatabase()
     const usersCollection = db.collection("users")
@@ -27,10 +29,12 @@ export async function registerUser({ email, password, role }: RegisterUserParams
 
     // Create the user
     const result = await usersCollection.insertOne({
+      name,
       email,
       password: hashedPassword,
       role,
       createdAt: new Date(),
+      updatedAt: new Date(),
     })
 
     return { success: true, userId: result.insertedId.toString() }
@@ -78,17 +82,15 @@ export async function requestPasswordReset(email: string) {
 
     // Send reset email
     const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`
-    console.log("NEXTAUTH_URL", resetUrl)
 
     await sendEmailNotification({
       to: email,
       subject: "Reset your WIECA Mentor Connect password",
-      template: "new-message", // Reusing the message template for now
+      template: "password-reset",
       data: {
         recipientName: user.name || email,
-        senderName: "WIECA Mentor Connect",
-        messagePreview: `You requested a password reset. Click the button below to reset your password. If you didn't request this, please ignore this email.`,
-        conversationUrl: resetUrl,
+        resetUrl: resetUrl,
+        expiresIn: "1 hour",
       },
     })
 
@@ -163,5 +165,61 @@ export async function resetPassword(token: string, newPassword: string) {
   } catch (error) {
     console.error("Password reset error:", error)
     return { success: false, error: "Failed to reset password" }
+  }
+}
+
+// Function to validate user credentials
+export async function validateCredentials(email: string, password: string) {
+  try {
+    const db = await connectToDatabase()
+    const usersCollection = db.collection("users")
+
+    const user = await usersCollection.findOne({ email })
+    if (!user || !user.password) {
+      return { success: false, error: "Invalid credentials" }
+    }
+
+    const isPasswordValid = await compare(password, user.password)
+    if (!isPasswordValid) {
+      return { success: false, error: "Invalid credentials" }
+    }
+
+    return {
+      success: true,
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        name: user.name || null,
+        role: user.role || "user",
+      },
+    }
+  } catch (error) {
+    console.error("Credential validation error:", error)
+    return { success: false, error: "Authentication failed" }
+  }
+}
+
+// Function to update user profile
+export async function updateUserProfile(userId: string, profileData: any) {
+  try {
+    const db = await connectToDatabase()
+    const usersCollection = db.collection("users")
+
+    const updateData = {
+      ...profileData,
+      updatedAt: new Date(),
+    }
+
+    // Remove password from update data if it exists
+    if (updateData.password) {
+      delete updateData.password
+    }
+
+    await usersCollection.updateOne({ _id: new ObjectId(userId) }, { $set: updateData })
+
+    return { success: true }
+  } catch (error) {
+    console.error("Profile update error:", error)
+    return { success: false, error: "Failed to update profile" }
   }
 }

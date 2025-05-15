@@ -3,15 +3,24 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { toast } from "@/components/ui/use-toast"
+import { requestPasswordReset } from "@/lib/actions/auth-actions"
+import { AlertCircle, CheckCircle } from "lucide-react"
 
-export default function ForgotPassword() {
+export default function ForgotPasswordPage() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
-  const [error, setError] = useState("")
   const [emailError, setEmailError] = useState("")
+  const [generalError, setGeneralError] = useState("")
 
   // Real-time validation
   useEffect(() => {
@@ -31,184 +40,168 @@ export default function ForgotPassword() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
 
-    // Validate email before submission
     if (!validateEmail(email)) {
       return
     }
 
     setIsLoading(true)
-    setError("")
+    setGeneralError("")
 
     try {
-      // This is a mock implementation - replace with your actual API call
-      const response = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      })
+      const result = await requestPasswordReset(email)
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to send password reset email")
+      if (result.success) {
+        setIsSubmitted(true)
+        toast({
+          title: "Reset link sent",
+          description: "If an account exists with this email, you will receive a password reset link.",
+        })
+      } else {
+        // We don't want to reveal if an email exists or not for security reasons
+        // So we show the same success message even if there's an error
+        setIsSubmitted(true)
+        toast({
+          title: "Reset link sent",
+          description: "If an account exists with this email, you will receive a password reset link.",
+        })
+        console.error("Password reset error:", result.error)
       }
-
-      // Success - show confirmation message
-      setIsSubmitted(true)
     } catch (error) {
       console.error("Password reset error:", error)
-      setError(error instanceof Error ? error.message : "An unexpected error occurred. Please try again.")
+      // Same message for security
+      setIsSubmitted(true)
+      toast({
+        title: "Reset link sent",
+        description: "If an account exists with this email, you will receive a password reset link.",
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
-        <div className="text-center">
-          <div className="flex justify-center">
-            <Image src="/logo.png" alt="WIECA Logo" width={100} height={100} className="h-20 w-auto" />
+    <div className="container flex h-screen w-screen flex-col items-center justify-center">
+      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+        <div className="flex flex-col space-y-2 text-center">
+          <div className="flex justify-center mb-6">
+            <Image src="/logo.png" alt="WIECA Logo" width={150} height={50} priority className="h-12 w-auto" />
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Reset your password</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Enter your email address and we'll send you a link to reset your password.
+          <h1 className="text-2xl font-semibold tracking-tight">Reset your password</h1>
+          <p className="text-sm text-muted-foreground">
+            {isSubmitted
+              ? "Check your email for a reset link"
+              : "Enter your email address and we'll send you a link to reset your password"}
           </p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
+        <Card>
+          {generalError && (
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 mx-6 mt-6 rounded">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{generalError}</p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {isSubmitted ? (
-          <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-green-400"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
+          <CardContent className="pt-6">
+            {!isSubmitted ? (
+              <form onSubmit={onSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@example.com"
+                    required
+                    autoComplete="email"
+                    className={emailError ? "border-red-300" : ""}
+                    aria-invalid={!!emailError}
+                    aria-describedby={emailError ? "email-error" : undefined}
                   />
-                </svg>
+                  {emailError && (
+                    <p className="text-sm text-red-500" id="email-error">
+                      {emailError}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  className="w-full bg-[#DB7C27] hover:bg-[#c06a1f]"
+                  type="submit"
+                  disabled={isLoading}
+                  aria-busy={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Sending...
+                    </>
+                  ) : (
+                    "Send reset link"
+                  )}
+                </Button>
+              </form>
+            ) : (
+              <div className="text-center py-6 space-y-4">
+                <div className="flex justify-center">
+                  <div className="rounded-full bg-green-100 p-3">
+                    <CheckCircle className="h-6 w-6 text-green-600" />
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-2">
+                    We've sent an email to <strong>{email}</strong> with instructions to reset your password.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    If you don't see it in your inbox, please check your spam folder.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  className="mt-4 border-[#DB7C27] text-[#DB7C27] hover:bg-[#DB7C27]/10"
+                  onClick={() => router.push("/login")}
+                >
+                  Return to login
+                </Button>
               </div>
-              <div className="ml-3">
-                <p className="text-sm text-green-700">
-                  Password reset link sent! Check your email for instructions to reset your password.
-                </p>
-              </div>
-            </div>
-            <div className="mt-4 text-center">
-              <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-                Return to login
+            )}
+          </CardContent>
+          {!isSubmitted && (
+            <CardFooter className="flex justify-center border-t pt-4">
+              <Link href="/login" className="text-sm text-muted-foreground hover:text-[#DB7C27]">
+                Back to login
               </Link>
-            </div>
-          </div>
-        ) : (
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`appearance-none relative block w-full px-3 py-2 border ${
-                  emailError ? "border-red-300" : "border-gray-300"
-                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
-                placeholder="Email address"
-                aria-invalid={!!emailError}
-                aria-describedby={emailError ? "email-error" : undefined}
-              />
-              {emailError && (
-                <p className="mt-1 text-sm text-red-600" id="email-error">
-                  {emailError}
-                </p>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="text-sm">
-                <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-                  Back to login
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-busy={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Sending...
-                  </>
-                ) : (
-                  "Send reset link"
-                )}
-              </button>
-            </div>
-          </form>
-        )}
+            </CardFooter>
+          )}
+        </Card>
       </div>
     </div>
   )
