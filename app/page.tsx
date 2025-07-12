@@ -34,7 +34,7 @@ export default function Home() {
             <div className="flex items-center justify-center">
               <div className="relative w-full max-w-md aspect-[4/3] rounded-lg overflow-hidden shadow-xl">
                 <Image
-                  src="/mentorship.jpeg"
+                  src="/mentorship.png"
                   alt="Mentorship in renewable energy"
                   fill
                   className="object-cover"
@@ -284,7 +284,7 @@ export default function Home() {
               </p>
               <div className="relative h-40 w-full rounded-lg overflow-hidden shadow-md">
                 <Image
-                  src="/profile-creation.jpg"
+                  src="/profile-creation.png"
                   alt="Creating a profile"
                   fill
                   className="object-cover"
@@ -302,7 +302,7 @@ export default function Home() {
               </p>
               <div className="relative h-40 w-full rounded-lg overflow-hidden shadow-md">
                 <Image
-                  src="/mentor-matching.jpg"
+                  src="/mentor-matching.png"
                   alt="Finding a mentor match"
                   fill
                   className="object-cover"
@@ -320,7 +320,7 @@ export default function Home() {
               </p>
               <div className="relative h-40 w-full rounded-lg overflow-hidden shadow-md">
                 <Image
-                  src="/mentorship-meeting.jpg"
+                  src="/mentorship-meeting.png"
                   alt="Mentorship meeting"
                   fill
                   className="object-cover"
