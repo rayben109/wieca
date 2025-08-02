@@ -52,7 +52,7 @@ export async function sendEmailNotification({ to, subject, template, data }: Ema
 
     // Send the email
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || "WIECA Mentor Connect <noreply@example.com>",
+      from: process.env.EMAIL_FROM || "WIECA Mentor Connect <noreply@wiecaglobal.org>",
       to,
       subject,
       html,
