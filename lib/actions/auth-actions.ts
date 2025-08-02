@@ -82,6 +82,7 @@ export async function requestPasswordReset(email: string) {
 
     // Send reset email
     const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`
+    console.log(resetUrl)
 
     await sendEmailNotification({
       to: email,
