@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # Keep npm / Node.js dependencies updated
+  - package-ecosystem: "npm"
+    directory: "/" # root directory with package.json
+    schedule:
+      interval: "weekly" # options: daily, weekly, monthly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+
+  # (Optional) Keep GitHub Actions up-to-date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
