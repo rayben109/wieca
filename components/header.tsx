@@ -26,19 +26,29 @@ export default function Header() {
 
   const isActive = (path: string) => pathname === path
   const isMentor = session?.user?.role === "mentor"
+  const isAdmin = session?.user?.role === "admin"
 
   const navigation = [
     { name: "Home", href: "/" },
-    ...(status === "authenticated"
+    //admin specific links
+    ...(status === "authenticated" && isAdmin
+    ? [{ name: "Admin Panel", href: "/admin", icon: Users }]
+    : 
+    //mentor and mentee specific links
+    status === "authenticated"
       ? [
           { name: "Profile", href: "/profile" },
           { name: "Messages", href: "/messages", icon: MessageSquare },
           {
-            name: isMentor ? "My Mentees" : "My Mentors",
-            href: isMentor ? "/mentees" : "/mentors",
+            name: isMentor  ? "My Mentees" : "My Mentors",
+            href: isMentor  ? "/mentees" : "/mentors",
             icon: Users,
           },
-          { name: isMentor ? "Requests" : "Find Mentors", href: isMentor ? "/requests" : "/search" },
+          {
+            name: isMentor  ? "Requests" : "Find Mentors",
+            href: isMentor  ? "/requests" : "/search",
+          },
+          
         ]
       : []),
   ]

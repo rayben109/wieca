@@ -16,12 +16,15 @@ export default function Home() {
                   WIECA Mentor Connect Programme
                 </h1>
                 <p className="max-w-[600px] text-gray-500 md:text-xl dark:text-gray-400">
-                  Connect with industry professionals in renewable energy and build meaningful mentorship relationships.
+                  Connect with industry professionals in renewable energy and
+                  build meaningful mentorship relationships.
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Link href="/register">
-                  <Button className="bg-[#DB7C27] hover:bg-[#c06a1f]">Get Started</Button>
+                  <Button className="bg-[#DB7C27] hover:bg-[#c06a1f]">
+                    Get Started
+                  </Button>
                 </Link>
                 <Link href="/login">
                   <Button variant="outline">Sign In</Button>
@@ -31,7 +34,7 @@ export default function Home() {
             <div className="flex items-center justify-center">
               <div className="relative w-full max-w-md aspect-[4/3] rounded-lg overflow-hidden shadow-xl">
                 <Image
-                  src="/mentorship.jpeg"
+                  src="/mentorship.png"
                   alt="Mentorship in renewable energy"
                   fill
                   className="object-cover"
@@ -48,9 +51,12 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Areas of Impact</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                Areas of Impact
+              </h2>
               <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                Our mentorship program creates meaningful impact across various renewable energy sectors
+                Our mentorship program creates meaningful impact across various
+                renewable energy sectors
               </p>
             </div>
           </div>
@@ -76,8 +82,8 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-2">Solar Energy</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-4">
-                Connecting mentees with experts in photovoltaic technology, solar thermal systems, and solar project
-                development.
+                Connecting mentees with experts in photovoltaic technology,
+                solar thermal systems, and solar project development.
               </p>
               <Link
                 href="/search"
@@ -107,7 +113,8 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-2">Wind Energy</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-4">
-                Supporting career growth in wind farm development, turbine technology, and offshore wind innovations.
+                Supporting career growth in wind farm development, turbine
+                technology, and offshore wind innovations.
               </p>
               <Link
                 href="/search"
@@ -137,8 +144,8 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-2">Energy Storage</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-4">
-                Facilitating knowledge exchange in battery technology, grid-scale storage, and energy management
-                systems.
+                Facilitating knowledge exchange in battery technology,
+                grid-scale storage, and energy management systems.
               </p>
               <Link
                 href="/search"
@@ -172,8 +179,8 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-2">Hydroelectric Power</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-4">
-                Mentoring in hydropower project development, environmental impact assessment, and sustainable water
-                management.
+                Mentoring in hydropower project development, environmental
+                impact assessment, and sustainable water management.
               </p>
               <Link
                 href="/search"
@@ -203,8 +210,8 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-2">Energy Policy</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-4">
-                Guiding professionals in renewable energy policy development, regulatory frameworks, and government
-                relations.
+                Guiding professionals in renewable energy policy development,
+                regulatory frameworks, and government relations.
               </p>
               <Link
                 href="/search"
@@ -237,7 +244,8 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-2">Green Finance</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-4">
-                Connecting mentees with experts in sustainable investing, project financing, and carbon markets.
+                Connecting mentees with experts in sustainable investing,
+                project financing, and carbon markets.
               </p>
               <Link
                 href="/search"
@@ -255,41 +263,68 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">How It Works</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                How It Works
+              </h2>
               <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                Our platform makes it easy to find the perfect mentor or share your expertise as a mentor.
+                Our platform makes it easy to find the perfect mentor or share
+                your expertise as a mentor.
               </p>
             </div>
           </div>
           <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-3 lg:gap-12">
             <div className="flex flex-col justify-center space-y-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#DB7C27] text-white">1</div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#DB7C27] text-white">
+                1
+              </div>
               <h3 className="text-xl font-bold">Create Your Profile</h3>
               <p className="text-gray-500 dark:text-gray-400">
-                Sign up and build your detailed profile showcasing your experience, interests, and goals.
+                Sign up and build your detailed profile showcasing your
+                experience, interests, and goals.
               </p>
               <div className="relative h-40 w-full rounded-lg overflow-hidden shadow-md">
-                <Image src="/profile-creation.jpg" alt="Creating a profile" fill className="object-cover" />
+                <Image
+                  src="/profile-creation.png"
+                  alt="Creating a profile"
+                  fill
+                  className="object-cover"
+                />
               </div>
             </div>
             <div className="flex flex-col justify-center space-y-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#DB7C27] text-white">2</div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#DB7C27] text-white">
+                2
+              </div>
               <h3 className="text-xl font-bold">Find Your Match</h3>
               <p className="text-gray-500 dark:text-gray-400">
-                Browse through potential mentors or receive AI-powered recommendations based on your profile.
+                Browse through potential mentors or receive AI-powered
+                recommendations based on your profile.
               </p>
               <div className="relative h-40 w-full rounded-lg overflow-hidden shadow-md">
-                <Image src="/mentor-matching.jpg" alt="Finding a mentor match" fill className="object-cover" />
+                <Image
+                  src="/mentor-matching.png"
+                  alt="Finding a mentor match"
+                  fill
+                  className="object-cover"
+                />
               </div>
             </div>
             <div className="flex flex-col justify-center space-y-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#DB7C27] text-white">3</div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#DB7C27] text-white">
+                3
+              </div>
               <h3 className="text-xl font-bold">Connect & Grow</h3>
               <p className="text-gray-500 dark:text-gray-400">
-                Send mentorship requests and start building valuable professional relationships.
+                Send mentorship requests and start building valuable
+                professional relationships.
               </p>
               <div className="relative h-40 w-full rounded-lg overflow-hidden shadow-md">
-                <Image src="/mentorship-meeting.jpg" alt="Mentorship meeting" fill className="object-cover" />
+                <Image
+                  src="/mentorship-meeting.png"
+                  alt="Mentorship meeting"
+                  fill
+                  className="object-cover"
+                />
               </div>
             </div>
           </div>
@@ -301,9 +336,12 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Success Stories</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                Success Stories
+              </h2>
               <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                Hear from professionals who have benefited from our mentorship programme.
+                Hear from professionals who have benefited from our mentorship
+                programme.
               </p>
             </div>
           </div>
@@ -311,31 +349,47 @@ export default function Home() {
             <div className="flex flex-col justify-center space-y-4 rounded-lg border p-6 shadow-sm">
               <div className="flex items-center space-x-4">
                 <div className="relative h-12 w-12 overflow-hidden rounded-full">
-                  <Image src="/testimonial-1.jpg" alt="Sarah Johnson" fill className="object-cover" />
+                  <Image
+                    src="/testimonial-1.jpg"
+                    alt="Sarah Johnson"
+                    fill
+                    className="object-cover"
+                  />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold">Sarah Johnson</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Solar Project Manager</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Solar Project Manager
+                  </p>
                 </div>
               </div>
               <p className="text-gray-500 dark:text-gray-400">
-                "The WIECA Mentor Connect Programme connected me with an industry leader who helped me navigate my
-                career transition into renewable energy. The guidance I received was invaluable."
+                "The WIECA Mentor Connect Programme connected me with an
+                industry leader who helped me navigate my career transition into
+                renewable energy. The guidance I received was invaluable."
               </p>
             </div>
             <div className="flex flex-col justify-center space-y-4 rounded-lg border p-6 shadow-sm">
               <div className="flex items-center space-x-4">
                 <div className="relative h-12 w-12 overflow-hidden rounded-full">
-                  <Image src="/testimonial-2.jpg" alt="Michael Chen" fill className="object-cover" />
+                  <Image
+                    src="/testimonial-2.jpg"
+                    alt="Michael Chen"
+                    fill
+                    className="object-cover"
+                  />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold">Michael Chen</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Wind Energy Consultant</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Wind Energy Consultant
+                  </p>
                 </div>
               </div>
               <p className="text-gray-500 dark:text-gray-400">
-                "As a mentor, I've found the platform incredibly rewarding. It's well-organized and makes it easy to
-                connect with passionate individuals looking to grow in the renewable energy sector."
+                "As a mentor, I've found the platform incredibly rewarding. It's
+                well-organized and makes it easy to connect with passionate
+                individuals looking to grow in the renewable energy sector."
               </p>
             </div>
           </div>
@@ -347,17 +401,24 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center text-white">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Ready to Connect?</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                Ready to Connect?
+              </h2>
               <p className="max-w-[900px] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                 Join our community of renewable energy professionals today.
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
               <Link href="/register">
-                <Button className="bg-white text-[#DB7C27] hover:bg-gray-100">Register Now</Button>
+                <Button className="bg-white text-[#DB7C27] hover:bg-gray-100">
+                  Register Now
+                </Button>
               </Link>
               <Link href="/login">
-                <Button variant="outline" className="text-white border-white hover:bg-white/10">
+                <Button
+                  variant="outline"
+                  className="text-[#DB7C27] border-white hover:bg-white/10 hover:text-white"
+                >
                   Sign In
                 </Button>
               </Link>
@@ -372,11 +433,16 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="relative h-10 w-40">
-                <Image src="/logo.png" alt="WIECA Mentor Connect" fill className="object-contain" />
+                <Image
+                  src="/logo.png"
+                  alt="WIECA Mentor Connect"
+                  fill
+                  className="object-contain"
+                />
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Connecting professionals in the renewable energy sector to foster growth, innovation, and knowledge
-                sharing.
+                Connecting professionals in the renewable energy sector to
+                foster growth, innovation, and knowledge sharing.
               </p>
               <div className="flex space-x-4">
                 <Link href="#" className="text-gray-500 hover:text-[#DB7C27]">
@@ -438,27 +504,42 @@ export default function Home() {
               <h3 className="text-lg font-bold">Quick Links</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/" className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400">
+                  <Link
+                    href="/"
+                    className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400"
+                  >
                     Home
                   </Link>
                 </li>
                 <li>
-                  <Link href="/search" className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400">
+                  <Link
+                    href="/search"
+                    className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400"
+                  >
                     Find Mentors
                   </Link>
                 </li>
                 <li>
-                  <Link href="/profile" className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400">
+                  <Link
+                    href="/profile"
+                    className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400"
+                  >
                     My Profile
                   </Link>
                 </li>
                 <li>
-                  <Link href="/messages" className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400">
+                  <Link
+                    href="/messages"
+                    className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400"
+                  >
                     Messages
                   </Link>
                 </li>
                 <li>
-                  <Link href="/calendar" className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400">
+                  <Link
+                    href="/calendar"
+                    className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400"
+                  >
                     Calendar
                   </Link>
                 </li>
@@ -468,27 +549,42 @@ export default function Home() {
               <h3 className="text-lg font-bold">Resources</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="#" className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400">
+                  <Link
+                    href="#"
+                    className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400"
+                  >
                     Blog
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400">
+                  <Link
+                    href="#"
+                    className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400"
+                  >
                     Mentorship Guide
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400">
+                  <Link
+                    href="#"
+                    className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400"
+                  >
                     FAQ
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400">
+                  <Link
+                    href="#"
+                    className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400"
+                  >
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400">
+                  <Link
+                    href="#"
+                    className="text-gray-500 hover:text-[#DB7C27] dark:text-gray-400"
+                  >
                     Terms of Service
                   </Link>
                 </li>
@@ -499,15 +595,21 @@ export default function Home() {
               <ul className="space-y-2 text-sm">
                 <li className="flex items-start space-x-2">
                   <MapPin className="h-5 w-5 text-[#DB7C27] mt-0.5" />
-                  <span className="text-gray-500 dark:text-gray-400">123 Renewable Way, Green City, EC01 2WE</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Dar es Salaam, Tanzania
+                  </span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <Phone className="h-5 w-5 text-[#DB7C27]" />
-                  <span className="text-gray-500 dark:text-gray-400">+44 (0) 123 456 7890</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    +255 (0) 734 150 500
+                  </span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <Mail className="h-5 w-5 text-[#DB7C27]" />
-                  <span className="text-gray-500 dark:text-gray-400">info@wiecamentorconnect.org</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    info@wiecaglobal.com
+                  </span>
                 </li>
               </ul>
               <form className="space-y-2">
@@ -521,16 +623,24 @@ export default function Home() {
                     placeholder="Your email"
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
-                  <Button type="submit" className="bg-[#DB7C27] hover:bg-[#c06a1f]">
+                  <Button
+                    type="submit"
+                    className="bg-[#DB7C27] hover:bg-[#c06a1f]"
+                  >
                     Subscribe
                   </Button>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Subscribe to our newsletter for updates</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Subscribe to our newsletter for updates
+                </p>
               </form>
             </div>
           </div>
           <div className="mt-8 border-t pt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            <p>© {new Date().getFullYear()} WIECA Mentor Connect. All rights reserved.</p>
+            <p>
+              © {new Date().getFullYear()} WIECA Mentor Connect. All rights
+              reserved.
+            </p>
           </div>
         </div>
       </footer>
