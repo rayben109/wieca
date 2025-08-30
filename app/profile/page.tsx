@@ -46,8 +46,7 @@ const communicationPlatforms = [
   { id: "zoom", label: "Zoom" },
   { id: "teams", label: "Microsoft Teams" },
   { id: "google-meet", label: "Google Meet" },
-  { id: "whatsapp", label: "WhatsApp" },
-  { id: "skype", label: "Skype" },
+  { id: "whatsapp", label: "Skype" },
 ]
 
 const genderOptions = [
@@ -455,7 +454,7 @@ export default function ProfilePage() {
               </TabsContent>
             </Tabs>
 
-            <div className="flex justify-end mt-6 space-x-2">
+            <div className="flex justify-between mt-6 space-x-2">
               <Button
                 type="button"
                 variant="outline"
@@ -469,6 +468,9 @@ export default function ProfilePage() {
               </Button>
               <Button type="submit" className="bg-[#DB7C27] hover:bg-[#c06a1f]" disabled={isLoading}>
                 {isLoading ? "Saving..." : "Save Profile"}
+              </Button>
+              <Button type="button" variant="secondary">
+                Export Profile
               </Button>
             </div>
           </form>
