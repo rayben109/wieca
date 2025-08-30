@@ -18,6 +18,10 @@ export async function getAdminStats() {
     const usersCollection = db.collection("users")
     const profilesCollection = db.collection("profiles")
     const requestsCollection = db.collection("mentorshipRequests")
+    const messagesCollection = db.collection("messages")
+    const conversationsCollection = db.collection("conversations")
+    const notificationsCollection = db.collection("notifications")
+    const settingsCollection = db.collection("settings")
 
     // Get user counts
     const totalUsers = await usersCollection.countDocuments()
@@ -27,12 +31,21 @@ export async function getAdminStats() {
 
     // Get mentorship stats
     const totalRequests = await requestsCollection.countDocuments()
-    const acceptedRequests = await requestsCollection.countDocuments({ status: "accepted" })
-    const pendingRequests = await requestsCollection.countDocuments({ status: "pending" })
-    const declinedRequests = await requestsCollection.countDocuments({ status: "declined" })
+    const acceptedRequests = await requestsCollection.countDocuments({
+      status: "accepted",
+    })
+    const pendingRequests = await requestsCollection.countDocuments({
+      status: "pending",
+    })
+    const declinedRequests = await requestsCollection.countDocuments({
+      status: "declined",
+    })
 
     // Calculate acceptance rate
-    const acceptanceRate = totalRequests > 0 ? Math.round((acceptedRequests / totalRequests) * 100) : 0
+    const acceptanceRate =
+      totalRequests > 0
+        ? Math.round((acceptedRequests / totalRequests) * 100)
+        : 0
 
     // Get recent users
     const recentUsers = await usersCollection
@@ -47,7 +60,7 @@ export async function getAdminStats() {
           email: user.email,
           role: user.role,
           createdAt: user.createdAt,
-        })),
+        }))
       )
 
     // Get user growth data (last 6 months)
@@ -108,7 +121,7 @@ export async function getAdminStats() {
         items.map((item) => ({
           name: item._id,
           value: item.count,
-        })),
+        }))
       )
 
     // Get recent matches
@@ -144,11 +157,18 @@ export async function getAdminStats() {
       .then((matches) =>
         matches.map((match) => ({
           id: match._id.toString(),
-          mentor: match.mentor[0]?.name || match.mentor[0]?.email.split("@")[0] || "Unknown",
-          mentee: match.mentee[0]?.name || match.mentee[0]?.email.split("@")[0] || "Unknown",
-          date: match.updatedAt?.toISOString() || match.createdAt?.toISOString(),
+          mentor:
+            match.mentor[0]?.name ||
+            match.mentor[0]?.email.split("@")[0] ||
+            "Unknown",
+          mentee:
+            match.mentee[0]?.name ||
+            match.mentee[0]?.email.split("@")[0] ||
+            "Unknown",
+          date:
+            match.updatedAt?.toISOString() || match.createdAt?.toISOString(),
           status: "Active",
-        })),
+        }))
       )
 
     // Calculate average response time (in hours)
@@ -178,7 +198,8 @@ export async function getAdminStats() {
     console.error("Get admin stats error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to get admin stats",
+      error:
+        error instanceof Error ? error.message : "Failed to get admin stats",
     }
   }
 }
@@ -251,7 +272,7 @@ export async function getAnalyticsData() {
         items.map((item) => ({
           name: item._id,
           value: item.count,
-        })),
+        }))
       )
 
     // Get user roles distribution
@@ -269,7 +290,7 @@ export async function getAnalyticsData() {
         items.map((item) => ({
           name: item._id || "unknown",
           value: item.count,
-        })),
+        }))
       )
 
     // Get message activity over time (last 30 days)
@@ -318,7 +339,8 @@ export async function getAnalyticsData() {
     console.error("Get analytics data error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to get analytics data",
+      error:
+        error instanceof Error ? error.message : "Failed to get analytics data",
     }
   }
 }
@@ -340,11 +362,15 @@ export async function getUsersAdmin() {
 
     // Get profiles for all users
     const userIds = users.map((user) => user._id)
-    const profiles = await profilesCollection.find({ userId: { $in: userIds } }).toArray()
+    const profiles = await profilesCollection
+      .find({ userId: { $in: userIds } })
+      .toArray()
 
     // Map users with profile information
     const usersWithProfiles = users.map((user) => {
-      const profile = profiles.find((p) => p.userId.toString() === user._id.toString())
+      const profile = profiles.find(
+        (p) => p.userId.toString() === user._id.toString()
+      )
 
       return {
         id: user._id.toString(),
@@ -372,7 +398,12 @@ export async function getUsersAdmin() {
 // Add alias for getAllUsers
 export const getAllUsers = getUsersAdmin
 
-export async function createUserAdmin(userData: { name: string; email: string; password: string; role: string }) {
+export async function createUserAdmin(userData: {
+  name: string
+  email: string
+  password: string
+  role: string
+}) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -421,14 +452,22 @@ export async function createUserAdmin(userData: { name: string; email: string; p
     return { success: true, userId: result.insertedId.toString() }
   } catch (error) {
     console.error("Create user error:", error)
-    return { success: false, error: error instanceof Error ? error.message : "Failed to create user" }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to create user",
+    }
   }
 }
 
 // Add alias for createUser
 export const createUser = createUserAdmin
 
-export async function updateUserAdmin(userData: { id: string; name: string; role: string; status: string }) {
+export async function updateUserAdmin(userData: {
+  id: string
+  name: string
+  role: string
+  status: string
+}) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -446,7 +485,9 @@ export async function updateUserAdmin(userData: { id: string; name: string; role
     const usersCollection = db.collection("users")
 
     // Check if the user exists
-    const existingUser = await usersCollection.findOne({ _id: new ObjectId(id) })
+    const existingUser = await usersCollection.findOne({
+      _id: new ObjectId(id),
+    })
     if (!existingUser) {
       return { success: false, error: "User not found" }
     }
@@ -461,16 +502,21 @@ export async function updateUserAdmin(userData: { id: string; name: string; role
           status,
           updatedAt: new Date(),
         },
-      },
+      }
     )
 
     // Update the profile name if it exists
     if (name) {
       const profilesCollection = db.collection("profiles")
-      const existingProfile = await profilesCollection.findOne({ userId: new ObjectId(id) })
+      const existingProfile = await profilesCollection.findOne({
+        userId: new ObjectId(id),
+      })
 
       if (existingProfile) {
-        await profilesCollection.updateOne({ userId: new ObjectId(id) }, { $set: { name, updatedAt: new Date() } })
+        await profilesCollection.updateOne(
+          { userId: new ObjectId(id) },
+          { $set: { name, updatedAt: new Date() } }
+        )
       } else {
         await profilesCollection.insertOne({
           userId: new ObjectId(id),
@@ -483,7 +529,10 @@ export async function updateUserAdmin(userData: { id: string; name: string; role
     return { success: true }
   } catch (error) {
     console.error("Update user error:", error)
-    return { success: false, error: error instanceof Error ? error.message : "Failed to update user" }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update user",
+    }
   }
 }
 
@@ -504,7 +553,9 @@ export async function updateUserRole(userId: string, role: string) {
     const usersCollection = db.collection("users")
 
     // Check if the user exists
-    const existingUser = await usersCollection.findOne({ _id: new ObjectId(userId) })
+    const existingUser = await usersCollection.findOne({
+      _id: new ObjectId(userId),
+    })
     if (!existingUser) {
       return { success: false, error: "User not found" }
     }
@@ -517,13 +568,17 @@ export async function updateUserRole(userId: string, role: string) {
           role,
           updatedAt: new Date(),
         },
-      },
+      }
     )
 
     return { success: true }
   } catch (error) {
     console.error("Update user role error:", error)
-    return { success: false, error: error instanceof Error ? error.message : "Failed to update user role" }
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to update user role",
+    }
   }
 }
 
@@ -543,7 +598,9 @@ export async function deleteUserAdmin(userId: string) {
     const usersCollection = db.collection("users")
 
     // Check if the user exists
-    const existingUser = await usersCollection.findOne({ _id: new ObjectId(userId) })
+    const existingUser = await usersCollection.findOne({
+      _id: new ObjectId(userId),
+    })
     if (!existingUser) {
       return { success: false, error: "User not found" }
     }
@@ -563,7 +620,10 @@ export async function deleteUserAdmin(userId: string) {
     // Delete mentorship requests where the user is a participant
     const requestsCollection = db.collection("mentorshipRequests")
     await requestsCollection.deleteMany({
-      $or: [{ mentorId: new ObjectId(userId) }, { menteeId: new ObjectId(userId) }],
+      $or: [
+        { mentorId: new ObjectId(userId) },
+        { menteeId: new ObjectId(userId) },
+      ],
     })
 
     // Delete conversations where the user is a participant
@@ -596,7 +656,10 @@ export async function deleteUserAdmin(userId: string) {
     return { success: true }
   } catch (error) {
     console.error("Delete user error:", error)
-    return { success: false, error: error instanceof Error ? error.message : "Failed to delete user" }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete user",
+    }
   }
 }
 
@@ -616,7 +679,10 @@ export async function getAllMentorships() {
     const usersCollection = db.collection("users")
 
     // Get all mentorship requests
-    const requests = await requestsCollection.find().sort({ createdAt: -1 }).toArray()
+    const requests = await requestsCollection
+      .find()
+      .sort({ createdAt: -1 })
+      .toArray()
 
     // Get all user IDs involved in requests
     const userIds = requests.flatMap((req) => [req.mentorId, req.menteeId])
@@ -631,8 +697,12 @@ export async function getAllMentorships() {
 
     // Map requests with user details
     const mentorships = requests.map((req) => {
-      const mentor = users.find((u) => u._id.toString() === req.mentorId.toString())
-      const mentee = users.find((u) => u._id.toString() === req.menteeId.toString())
+      const mentor = users.find(
+        (u) => u._id.toString() === req.mentorId.toString()
+      )
+      const mentee = users.find(
+        (u) => u._id.toString() === req.menteeId.toString()
+      )
 
       return {
         id: req._id.toString(),
@@ -655,13 +725,17 @@ export async function getAllMentorships() {
     console.error("Get mentorships error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to get mentorships",
+      error:
+        error instanceof Error ? error.message : "Failed to get mentorships",
     }
   }
 }
 
 // Add updateMentorshipStatus function
-export async function updateMentorshipStatus(mentorshipId: string, status: string) {
+export async function updateMentorshipStatus(
+  mentorshipId: string,
+  status: string
+) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -677,7 +751,9 @@ export async function updateMentorshipStatus(mentorshipId: string, status: strin
     const requestsCollection = db.collection("mentorshipRequests")
 
     // Check if the mentorship exists
-    const existingRequest = await requestsCollection.findOne({ _id: new ObjectId(mentorshipId) })
+    const existingRequest = await requestsCollection.findOne({
+      _id: new ObjectId(mentorshipId),
+    })
     if (!existingRequest) {
       return { success: false, error: "Mentorship not found" }
     }
@@ -690,7 +766,7 @@ export async function updateMentorshipStatus(mentorshipId: string, status: strin
           status,
           updatedAt: new Date(),
         },
-      },
+      }
     )
 
     // If the status is accepted, create a conversation between mentor and mentee
@@ -700,14 +776,20 @@ export async function updateMentorshipStatus(mentorshipId: string, status: strin
       // Check if a conversation already exists
       const existingConversation = await conversationsCollection.findOne({
         participants: {
-          $all: [new ObjectId(existingRequest.mentorId), new ObjectId(existingRequest.menteeId)],
+          $all: [
+            new ObjectId(existingRequest.mentorId),
+            new ObjectId(existingRequest.menteeId),
+          ],
         },
       })
 
       if (!existingConversation) {
         // Create a new conversation
         await conversationsCollection.insertOne({
-          participants: [new ObjectId(existingRequest.mentorId), new ObjectId(existingRequest.menteeId)],
+          participants: [
+            new ObjectId(existingRequest.mentorId),
+            new ObjectId(existingRequest.menteeId),
+          ],
           createdAt: new Date(),
         })
       }
@@ -716,7 +798,13 @@ export async function updateMentorshipStatus(mentorshipId: string, status: strin
     return { success: true }
   } catch (error) {
     console.error("Update mentorship status error:", error)
-    return { success: false, error: error instanceof Error ? error.message : "Failed to update mentorship status" }
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update mentorship status",
+    }
   }
 }
 
@@ -750,7 +838,9 @@ export async function getMentorsList() {
 
     // Map mentors with their profiles
     const mentors = mentorUsers.map((user) => {
-      const profile = mentorProfiles.find((p) => p.userId.toString() === user._id.toString())
+      const profile = mentorProfiles.find(
+        (p) => p.userId.toString() === user._id.toString()
+      )
 
       return {
         id: user._id.toString(),
@@ -767,7 +857,8 @@ export async function getMentorsList() {
     console.error("Get mentors list error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to get mentors list",
+      error:
+        error instanceof Error ? error.message : "Failed to get mentors list",
     }
   }
 }
@@ -805,7 +896,9 @@ export async function getMenteesList() {
 
     // Map mentees with their profiles
     const mentees = menteeUsers.map((user) => {
-      const profile = menteeProfiles.find((p) => p.userId.toString() === user._id.toString())
+      const profile = menteeProfiles.find(
+        (p) => p.userId.toString() === user._id.toString()
+      )
 
       return {
         id: user._id.toString(),
@@ -822,7 +915,8 @@ export async function getMenteesList() {
     console.error("Get mentees list error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to get mentees list",
+      error:
+        error instanceof Error ? error.message : "Failed to get mentees list",
     }
   }
 }
@@ -830,7 +924,11 @@ export async function getMenteesList() {
 // Add alias for getAllMentees
 export const getAllMentees = getMenteesList
 
-export async function createMentorship(data: { mentorId: string; menteeId: string; message: string }) {
+export async function createMentorship(data: {
+  mentorId: string
+  menteeId: string
+  message: string
+}) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -849,12 +947,18 @@ export async function createMentorship(data: { mentorId: string; menteeId: strin
     const requestsCollection = db.collection("mentorshipRequests")
 
     // Check if mentor and mentee exist
-    const mentor = await usersCollection.findOne({ _id: new ObjectId(mentorId), role: "mentor" })
+    const mentor = await usersCollection.findOne({
+      _id: new ObjectId(mentorId),
+      role: "mentor",
+    })
     if (!mentor) {
       return { success: false, error: "Mentor not found" }
     }
 
-    const mentee = await usersCollection.findOne({ _id: new ObjectId(menteeId), role: "mentee" })
+    const mentee = await usersCollection.findOne({
+      _id: new ObjectId(menteeId),
+      role: "mentee",
+    })
     if (!mentee) {
       return { success: false, error: "Mentee not found" }
     }
@@ -866,7 +970,10 @@ export async function createMentorship(data: { mentorId: string; menteeId: strin
     })
 
     if (existingRequest) {
-      return { success: false, error: "A mentorship already exists between these users" }
+      return {
+        success: false,
+        error: "A mentorship already exists between these users",
+      }
     }
 
     // Create the mentorship request
@@ -889,7 +996,11 @@ export async function createMentorship(data: { mentorId: string; menteeId: strin
     return { success: true, mentorshipId: result.insertedId.toString() }
   } catch (error) {
     console.error("Create mentorship error:", error)
-    return { success: false, error: error instanceof Error ? error.message : "Failed to create mentorship" }
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to create mentorship",
+    }
   }
 }
 
@@ -921,13 +1032,19 @@ export async function updatePlatformSettings(settings: {
           updatedBy: new ObjectId(session.user.id),
         },
       },
-      { upsert: true },
+      { upsert: true }
     )
 
     return { success: true }
   } catch (error) {
     console.error("Update platform settings error:", error)
-    return { success: false, error: error instanceof Error ? error.message : "Failed to update platform settings" }
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update platform settings",
+    }
   }
 }
 
@@ -942,11 +1059,81 @@ export async function promoteToAdmin(userId: string) {
     const db = await connectToDatabase()
     const usersCollection = db.collection("users")
 
-    await usersCollection.updateOne({ _id: new ObjectId(userId) }, { $set: { role: "admin" } })
+    await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { role: "admin" } }
+    )
 
     return { success: true }
   } catch (error) {
     console.error("Promote to admin error:", error)
     return { success: false, error: "Failed to promote user to admin" }
   }
+}
+
+/* export async function getUserProfilesFromDB(filter?: { role?: string }) {
+  const session = await getServerSession(authOptions)
+  if (!session || session.user.role !== "admin") {
+    throw new Error("Unauthorized")
+  }
+
+  const db = await connectToDatabase()
+
+  const pipeline: any[] = [
+    {
+      $lookup: {
+        from: "profiles",
+        localField: "_id",
+        foreignField: "userId",
+        as: "profile",
+      },
+    },
+    { $unwind: { path: "$profile", preserveNullAndEmptyArrays: true } },
+    {
+      $project: {
+        _id: 1,
+        id: { $toString: "$_id" },
+        name: 1,
+        email: 1,
+        role: 1,
+        status: 1,
+        createdAt: 1,
+        image: 1,
+        emailVerified: 1,
+
+        // profile-specific fields
+        bio: "$profile.bio",
+        education: "$profile.education",
+        expertise: "$profile.expertise",
+        sector: "$profile.sector",
+        organization: "$profile.organization",
+        yearsOfExperience: "$profile.yearsOfExperience",
+        previousMentorship: "$profile.previousMentorship",
+        mentorshipResources: "$profile.mentorshipResources",
+        mentorshipExpectations: "$profile.mentorshipExpectations",
+        communicationPreferences: "$profile.communicationPreferences",
+        communicationPlatforms: "$profile.communicationPlatforms",
+        careerGoals: "$profile.careerGoals",
+        interests: "$profile.interests",
+        phoneNumber: "$profile.phoneNumber",
+        gender: "$profile.gender",
+        profileImage: "$profile.profileImage",
+        availability: "$profile.availability",
+      },
+    },
+  ]
+
+  if (filter?.role) {
+    pipeline.unshift({ $match: { role: filter.role } })
+  }
+
+  return db.collection("users").aggregate(pipeline).toArray()
+} */
+
+export async function getUserProfiles(filter?: { role?: string }) {
+  const res = await fetch(
+    `/api/admin/user-profiles${filter?.role ? `?role=${filter.role}` : ""}`,
+    { method: "GET" }
+  )
+  return res.json()
 }
