@@ -1,208 +1,221 @@
 "use server"
 
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import { connectToDatabase } from "@/lib/mongodb"
-import type { ProfileData } from "@/lib/types"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 import { ObjectId } from "mongodb"
-import { Parser } from "json2csv"
 
-export async function updateProfile(profileData: ProfileData) {
+export async function updateProfile(profileData: any) {
   try {
     const session = await getServerSession(authOptions)
-
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return { success: false, error: "Not authenticated" }
     }
 
-    const db = await connectToDatabase()
-    const profilesCollection = db.collection("profiles")
+    const { db } = await connectToDatabase()
 
-    // Check if profile exists
-    const existingProfile = await profilesCollection.findOne({
-      userId: new ObjectId(session.user.id),
-    })
-
-    if (existingProfile) {
-      // Update existing profile
-      await profilesCollection.updateOne(
-        { userId: new ObjectId(session.user.id) },
-        { $set: { ...profileData, updatedAt: new Date() } },
-      )
-    } else {
-      // Create new profile
-      await profilesCollection.insertOne({
-        userId: new ObjectId(session.user.id),
-        ...profileData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-    }
-
-    // Update user name in users collection
-    if (profileData.name) {
-      const usersCollection = db.collection("users")
-      await usersCollection.updateOne(
-        { _id: new ObjectId(session.user.id) },
-        {
-          $set: {
-            name: profileData.name,
-            profileImage: profileData.profileImage,
-          },
+    const result = await db.collection("users").updateOne(
+      { _id: new ObjectId(session.user.id) },
+      {
+        $set: {
+          ...profileData,
+          updatedAt: new Date(),
         },
-      )
+      },
+    )
+
+    if (result.modifiedCount === 0) {
+      return { success: false, error: "Profile not found or no changes made" }
     }
 
     return { success: true }
   } catch (error) {
-    console.error("Profile update error:", error)
+    console.error("Error updating profile:", error)
     return { success: false, error: "Failed to update profile" }
   }
 }
 
-export async function getProfile() {
+export async function getProfile(userId?: string) {
   try {
     const session = await getServerSession(authOptions)
+    const targetUserId = userId || session?.user?.id
 
-    if (!session?.user) {
-      return null
+    if (!targetUserId) {
+      return { success: false, error: "User ID required" }
     }
 
-    const db = await connectToDatabase()
-    const profilesCollection = db.collection("profiles")
+    const { db } = await connectToDatabase()
 
-    const profile = await profilesCollection.findOne({
-      userId: new ObjectId(session.user.id),
-    })
+    const user = await db
+      .collection("users")
+      .findOne({ _id: new ObjectId(targetUserId) }, { projection: { password: 0 } })
 
-    if (!profile) {
-      return {
-        name: "",
-        bio: "",
-        education: "",
-        expertise: [],
-        sector: "",
-        role: "",
-        organization: "",
-        yearsOfExperience: 0,
-        previousMentorship: false,
-        mentorshipResources: "",
-        mentorshipExpectations: "",
-        communicationPreferences: [],
-        communicationPlatforms: [],
-        careerGoals: "",
-        interests: "",
-        phoneNumber: "",
-        gender: "",
-        profileImage: "",
-        availability: "",
-      }
+    if (!user) {
+      return { success: false, error: "Profile not found" }
     }
 
-    return profile
+    return {
+      success: true,
+      profile: {
+        ...user,
+        id: user._id.toString(),
+        _id: undefined,
+      },
+    }
   } catch (error) {
-    console.error("Get profile error:", error)
-    return null
+    console.error("Error fetching profile:", error)
+    return { success: false, error: "Failed to fetch profile" }
   }
 }
 
-export async function getUserProfiles(filter?: { role?: string }) {
+export async function getUserProfiles() {
   try {
     const session = await getServerSession(authOptions)
-
     if (!session?.user || session.user.role !== "admin") {
-      return { success: false, error: "Unauthorized" }
+      return { success: false, error: "Admin access required" }
     }
 
-    const db = await connectToDatabase()
+    const { db } = await connectToDatabase()
 
-    const pipeline: any[] = [
-      {
-        $lookup: {
-          from: "profiles",
-          localField: "_id",
-          foreignField: "userId",
-          as: "profile",
+    const users = await db
+      .collection("users")
+      .find(
+        {},
+        {
+          projection: {
+            password: 0,
+          },
         },
-      },
-      { $unwind: { path: "$profile", preserveNullAndEmptyArrays: true } },
-      {
-        $project: {
-          _id: 1,
-          id: { $toString: "$_id" },
-          name: 1,
-          email: 1,
-          role: 1,
-          status: 1,
-          createdAt: 1,
-          image: 1,
-          emailVerified: 1,
+      )
+      .toArray()
 
-          // profile fields
-          bio: "$profile.bio",
-          education: "$profile.education",
-          expertise: "$profile.expertise",
-          sector: "$profile.sector",
-          organization: "$profile.organization",
-          yearsOfExperience: "$profile.yearsOfExperience",
-          previousMentorship: "$profile.previousMentorship",
-          mentorshipResources: "$profile.mentorshipResources",
-          mentorshipExpectations: "$profile.mentorshipExpectations",
-          communicationPreferences: "$profile.communicationPreferences",
-          communicationPlatforms: "$profile.communicationPlatforms",
-          careerGoals: "$profile.careerGoals",
-          interests: "$profile.interests",
-          phoneNumber: "$profile.phoneNumber",
-          gender: "$profile.gender",
-          profileImage: "$profile.profileImage",
-          availability: "$profile.availability",
-        },
-      },
-    ]
+    // Get mentorship statistics for each user
+    const profilesWithStats = await Promise.all(
+      users.map(async (user) => {
+        const mentorships = await db
+          .collection("mentorships")
+          .aggregate([
+            {
+              $match: {
+                $or: [{ mentorId: user._id }, { menteeId: user._id }],
+              },
+            },
+            {
+              $group: {
+                _id: "$status",
+                count: { $sum: 1 },
+              },
+            },
+          ])
+          .toArray()
 
-    if (filter?.role) {
-      pipeline.unshift({
-        $match: { role: filter.role },
-      })
+        const mentorshipStats = {
+          active: mentorships.find((m) => m._id === "active")?.count || 0,
+          completed: mentorships.find((m) => m._id === "completed")?.count || 0,
+          pending: mentorships.find((m) => m._id === "pending")?.count || 0,
+        }
+
+        return {
+          ...user,
+          id: user._id.toString(),
+          _id: undefined,
+          mentorships: mentorshipStats,
+          lastActive: user.lastLoginAt || user.updatedAt || user.createdAt,
+        }
+      }),
+    )
+
+    return {
+      success: true,
+      profiles: profilesWithStats,
     }
-
-    const profiles = await db.collection("users").aggregate(pipeline).toArray()
-    return { success: true, data: profiles }
   } catch (error) {
-    console.error("Get user profiles error:", error)
+    console.error("Error fetching user profiles:", error)
     return { success: false, error: "Failed to fetch user profiles" }
   }
 }
 
-export async function exportUserProfiles(filter?: { role?: string }) {
-  const result = await getUserProfiles(filter)
+export async function exportUserProfiles(userIds?: string[]) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || session.user.role !== "admin") {
+      return { success: false, error: "Admin access required" }
+    }
 
-  if (!result.success) {
-    return result
+    const { db } = await connectToDatabase()
+
+    let query = {}
+    if (userIds && userIds.length > 0) {
+      query = { _id: { $in: userIds.map((id) => new ObjectId(id)) } }
+    }
+
+    const users = await db
+      .collection("users")
+      .find(query, {
+        projection: {
+          password: 0,
+        },
+      })
+      .toArray()
+
+    // Convert to CSV format
+    const headers = [
+      "ID",
+      "Name",
+      "Email",
+      "Role",
+      "Status",
+      "Created At",
+      "Updated At",
+      "Bio",
+      "Skills",
+      "Interests",
+      "Experience",
+      "Education",
+      "Location",
+      "Phone",
+      "LinkedIn",
+      "GitHub",
+      "Website",
+      "Availability",
+      "Mentorship Goals",
+    ]
+
+    const csvRows = [
+      headers.join(","),
+      ...users.map((user) =>
+        [
+          user._id.toString(),
+          `"${user.name || ""}"`,
+          `"${user.email || ""}"`,
+          user.role || "",
+          user.status || "",
+          user.createdAt ? new Date(user.createdAt).toISOString() : "",
+          user.updatedAt ? new Date(user.updatedAt).toISOString() : "",
+          `"${user.profile?.bio || ""}"`,
+          `"${user.profile?.skills?.join("; ") || ""}"`,
+          `"${user.profile?.interests?.join("; ") || ""}"`,
+          `"${user.profile?.experience || ""}"`,
+          `"${user.profile?.education || ""}"`,
+          `"${user.profile?.location || ""}"`,
+          `"${user.profile?.phone || ""}"`,
+          `"${user.profile?.linkedin || ""}"`,
+          `"${user.profile?.github || ""}"`,
+          `"${user.profile?.website || ""}"`,
+          `"${user.profile?.availability || ""}"`,
+          `"${user.profile?.mentorshipGoals?.join("; ") || ""}"`,
+        ].join(","),
+      ),
+    ]
+
+    const csvData = csvRows.join("\n")
+
+    return {
+      success: true,
+      csvData,
+    }
+  } catch (error) {
+    console.error("Error exporting user profiles:", error)
+    return { success: false, error: "Failed to export user profiles" }
   }
-
-  const fields = [
-    "id",
-    "name",
-    "email",
-    "role",
-    "status",
-    "createdAt",
-    "bio",
-    "education",
-    "expertise",
-    "sector",
-    "organization",
-    "yearsOfExperience",
-    "careerGoals",
-    "interests",
-    "phoneNumber",
-    "gender",
-    "availability",
-  ]
-
-  const parser = new Parser({ fields })
-  const csv = parser.parse(result.data)
-
-  return { success: true, csv }
 }

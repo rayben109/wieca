@@ -1,151 +1,119 @@
-export interface ProfileData {
-  name: string
-  bio: string
-  education: string
-  expertise: string[]
-  sector: string
-  role: string
-  organization?: string
-  yearsOfExperience?: number
-  previousMentorship?: boolean
-  mentorshipResources?: string
-  mentorshipExpectations?: string
-  communicationPreferences: string[]
-  communicationPlatforms?: string[]
-  careerGoals: string
-  interests: string
-  phoneNumber?: string
-  gender?: string
-  profileImage?: string
-  availability?: string
-}
-
-export interface MentorProfile {
+export interface User {
   id: string
-  name: string
-  bio: string
-  role: string
-  organization?: string
-  sector: string
-  expertise: string[]
-  yearsOfExperience?: number
-  profileImage?: string
-  similarityScore?: number
+  name?: string | null
+  email: string
+  image?: string | null
+  role: "admin" | "mentor" | "mentee"
+  status?: "active" | "inactive" | "suspended"
+  createdAt: Date
+  updatedAt?: Date
+  emailVerified?: Date | null
+  profile?: UserProfile
 }
 
-export interface MentorshipRequest {
+export interface UserProfile {
+  bio?: string
+  skills?: string[]
+  interests?: string[]
+  experience?: string
+  education?: string
+  location?: string
+  phone?: string
+  linkedin?: string
+  github?: string
+  website?: string
+  availability?: string
+  mentorshipGoals?: string[]
+  achievements?: string[]
+}
+
+export interface Mentorship {
   id: string
   mentorId: string
   menteeId: string
-  message: string
-  status: "pending" | "accepted" | "declined"
-  createdAt: string
-  mentor: {
-    name: string
-    email: string
-    profileImage?: string
-  }
-  mentee: {
-    name: string
-    email: string
-    profileImage?: string
-  }
+  status: "pending" | "active" | "completed" | "cancelled"
+  startDate?: Date
+  endDate?: Date
+  goals?: string[]
+  notes?: string
+  createdAt: Date
+  updatedAt: Date
+  mentor?: User
+  mentee?: User
 }
 
 export interface Message {
   id: string
   conversationId: string
   senderId: string
+  receiverId: string
   content: string
-  createdAt: string
-  isCurrentUser: boolean
+  type: "text" | "file" | "image"
+  readAt?: Date
+  createdAt: Date
+  updatedAt: Date
+  sender?: User
+  receiver?: User
 }
 
 export interface Conversation {
   id: string
-  otherParticipant: {
-    id: string
-    name: string
-    email: string
-    role: string
-    profileImage?: string
-  }
-  lastMessage: string
-  lastMessageTime: string
-  unreadCount: number
+  participants: string[]
+  lastMessage?: Message
+  messageCount: number
+  status: "active" | "flagged" | "approved" | "blocked"
+  flags?: ConversationFlag[]
+  createdAt: Date
+  updatedAt: Date
 }
 
-export interface MentorshipSession {
-  id: string
-  title: string
-  description: string
-  startTime: string
-  status: "pending" | "confirmed" | "cancelled"
-  isCreator: boolean
-  participant: {
-    id: string
-    name: string
-    email: string
-    profileImage?: string
-  }
+export interface ConversationFlag {
+  reason: string
+  reportedBy: string
+  timestamp: Date
 }
 
 export interface Notification {
   id: string
   userId: string
-  type: "message" | "request" | "session" | "system"
+  type: "message" | "mentorship_request" | "mentorship_accepted" | "mentorship_declined" | "system"
   title: string
   message: string
-  relatedId?: string
   read: boolean
-  createdAt: string
+  data?: any
+  createdAt: Date
+  updatedAt: Date
 }
 
-export interface AdminStats {
-  totalUsers: number
-  mentorCount: number
-  menteeCount: number
-  activeMentorships: number
-  requestStats: {
-    total: number
-    pending: number
-    accepted: number
-    declined: number
-    acceptanceRate: number
-    avgResponseTime: number
-  }
-  recentUsers: {
-    id: string
-    name: string
-    email: string
-    role: string
-    createdAt: Date
-  }[]
-  userGrowth: {
-    date: string
-    count: number
-  }[]
-  expertiseDistribution: {
-    name: string
-    count: number
-  }[]
-  recentMatches: {
-    id: string
-    mentor: string
-    mentee: string
-    date: string
-    status: string
-  }[]
-}
-
-export interface User {
+export interface CalendarEvent {
   id: string
-  name: string
-  email: string
-  role: string
-  status: string
-  createdAt: string
-  image?: string
-  emailVerified?: boolean
-  _id: string
+  title: string
+  description?: string
+  startTime: Date
+  endTime: Date
+  attendees: string[]
+  type: "meeting" | "session" | "reminder"
+  mentorshipId?: string
+  createdBy: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface AdminAnalytics {
+  totalUsers: number
+  totalMentors: number
+  totalMentees: number
+  activeMentorships: number
+  totalConversations: number
+  flaggedConversations: number
+  userGrowth?: {
+    period: string
+    count: number
+  }[]
+  mentorshipStats?: {
+    pending: number
+    active: number
+    completed: number
+    cancelled: number
+  }
 }

@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Users, UserPlus, Handshake, LayoutDashboard, Settings, BarChart3 } from "lucide-react"
+import { Users, UserPlus, Handshake, LayoutDashboard, Settings, BarChart3, MessageSquare, Shield } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -67,6 +67,38 @@ export function AdminSidebar() {
                   <Link href="/admin/users/create">
                     <UserPlus className="h-5 w-5" />
                     <span>Create User</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === "/admin/users/profiles"} tooltip="Profile Data">
+                  <Link href="/admin/users/profiles">
+                    <Users className="h-5 w-5" />
+                    <span>Profile Data</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Communication</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === "/admin/conversations"} tooltip="Conversations">
+                  <Link href="/admin/conversations">
+                    <MessageSquare className="h-5 w-5" />
+                    <span>Conversations</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === "/admin/moderation"} tooltip="Moderation">
+                  <Link href="/admin/moderation">
+                    <Shield className="h-5 w-5" />
+                    <span>Moderation</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
