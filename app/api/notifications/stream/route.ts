@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
         const setupChangeStreams = async () => {
           try {
-            const { db } = await connectToDatabase()
+            const db = await connectToDatabase()
 
             // Watch for changes in conversations collection
             changeStream = db.collection("conversations").watch([

@@ -14,7 +14,7 @@ export async function getAllUsers() {
       return { success: false, error: "Admin access required" }
     }
 
-    const { db } = await connectToDatabase()
+    const db  = await connectToDatabase()
 
     const users = await db
       .collection("users")
@@ -49,7 +49,7 @@ export async function deleteUser(userId: string) {
       return { success: false, error: "Admin access required" }
     }
 
-    const { db } = await connectToDatabase()
+    const  db  = await connectToDatabase()
 
     // Don't allow deleting the current admin
     if (userId === session.user.id) {
@@ -91,7 +91,7 @@ export async function updateUserRole(userId: string, newRole: "admin" | "mentor"
       return { success: false, error: "Admin access required" }
     }
 
-    const { db } = await connectToDatabase()
+    const  db  = await connectToDatabase()
 
     const result = await db.collection("users").updateOne(
       { _id: new ObjectId(userId) },
@@ -125,8 +125,7 @@ export async function createUser(userData: {
     if (!session?.user || session.user.role !== "admin") {
       return { success: false, error: "Admin access required" }
     }
-
-    const { db } = await connectToDatabase()
+    const  db  = await connectToDatabase()
 
     // Check if user already exists
     const existingUser = await db.collection("users").findOne({
@@ -170,7 +169,7 @@ export async function getAllConversations() {
       return { success: false, error: "Admin access required" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
 
     // Get all conversations with participant details
     const conversations = await db
@@ -267,7 +266,7 @@ export async function moderateConversation(conversationId: string, action: "appr
       return { success: false, error: "Admin access required" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
 
     const updateData: any = {
       status: action === "approve" ? "approved" : action === "flag" ? "flagged" : "blocked",
@@ -306,7 +305,7 @@ export async function getAnalytics() {
       return { success: false, error: "Admin access required" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
 
     const [totalUsers, totalMentors, totalMentees, activeMentorships, totalConversations, flaggedConversations] =
       await Promise.all([
@@ -343,7 +342,7 @@ export async function getDashboardStats() {
       throw new Error("Unauthorized")
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
     const usersCollection = db.collection("users")
     const profilesCollection = db.collection("profiles")
     const requestsCollection = db.collection("mentorshipRequests")
@@ -534,7 +533,7 @@ export async function getAnalyticsData() {
       return { success: false, error: "Unauthorized" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
     const usersCollection = db.collection("users")
     const requestsCollection = db.collection("mentorshipRequests")
     const messagesCollection = db.collection("messages")
@@ -668,7 +667,7 @@ export async function getUsersAdmin() {
       return { success: false, error: "Unauthorized" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
     const usersCollection = db.collection("users")
     const profilesCollection = db.collection("profiles")
 
@@ -714,7 +713,7 @@ export async function getAllMentors() {
       return { success: false, error: "Unauthorized" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
     const usersCollection = db.collection("users")
     const profilesCollection = db.collection("profiles")
 
@@ -769,7 +768,7 @@ export async function getAllMentees() {
       return { success: false, error: "Unauthorized" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
     const usersCollection = db.collection("users")
     const profilesCollection = db.collection("profiles")
 
@@ -824,7 +823,7 @@ export async function getAllMentorships() {
       return { success: false, error: "Unauthorized" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
     const requestsCollection = db.collection("mentorshipRequests")
     const usersCollection = db.collection("users")
 
@@ -885,7 +884,7 @@ export async function updateMentorshipStatus(mentorshipId: string, status: strin
       return { success: false, error: "Mentorship ID and status are required" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
     const requestsCollection = db.collection("mentorshipRequests")
 
     // Check if the mentorship exists
@@ -945,7 +944,7 @@ export async function getMentorsList() {
       return { success: false, error: "Unauthorized" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
     const usersCollection = db.collection("users")
     const profilesCollection = db.collection("profiles")
 
@@ -997,7 +996,7 @@ export async function getMenteesList() {
       return { success: false, error: "Unauthorized" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
     const usersCollection = db.collection("users")
     const profilesCollection = db.collection("profiles")
 
@@ -1059,7 +1058,7 @@ export async function createMentorship(data: {
       return { success: false, error: "Mentor ID and Mentee ID are required" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
     const usersCollection = db.collection("users")
     const requestsCollection = db.collection("mentorshipRequests")
 
@@ -1134,7 +1133,7 @@ export async function updatePlatformSettings(settings: {
       return { success: false, error: "Unauthorized" }
     }
 
-    const { db } = await connectToDatabase()
+    const  db  = await connectToDatabase()
     const settingsCollection = db.collection("settings")
 
     // Update or create platform settings
@@ -1169,7 +1168,7 @@ export async function promoteToAdmin(userId: string) {
       return { success: false, error: "Unauthorized" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
     const usersCollection = db.collection("users")
 
     await usersCollection.updateOne({ _id: new ObjectId(userId) }, { $set: { role: "admin" } })
