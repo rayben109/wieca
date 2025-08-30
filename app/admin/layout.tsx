@@ -15,11 +15,7 @@ export default function AdminLayout({
   const { data: session, status } = useSession()
 
   if (status === "loading") {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    )
+    return <div>Loading...</div>
   }
 
   if (!session || session.user?.role !== "admin") {
@@ -29,7 +25,9 @@ export default function AdminLayout({
   return (
     <div className="flex h-screen bg-gray-100">
       <AdminSidebar />
-      <main className="flex-1 overflow-auto">{children}</main>
+      <main className="flex-1 overflow-y-auto">
+        <div className="container mx-auto py-6 px-4">{children}</div>
+      </main>
       <NotificationToast />
     </div>
   )
