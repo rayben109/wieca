@@ -1190,3 +1190,8 @@ export async function getUserProfiles(filter?: { role?: string }) {
 export const createUserAdmin = createUser
 export const updateUserAdmin = updateUserRole
 export const deleteUserAdmin = deleteUser
+
+// Additional exports for compatibility
+export const fetchAllUsers = getAllUsers
+export const fetchAllConversations = getAllConversations
+export const fetchAllMentorships = getAllMentorships

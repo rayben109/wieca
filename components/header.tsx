@@ -2,209 +2,180 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
-import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Menu, LogOut, MessageSquare, Users } from "lucide-react"
-import { NotificationsPopover } from "@/components/notifications"
-import { RealTimeNotifications } from "@/components/real-time-notifications"
-import { ThemeToggle } from "./theme-toggle"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { Menu, X, User, Settings, LogOut, Shield } from "lucide-react"
 
 export default function Header() {
   const { data: session, status } = useSession()
-  const pathname = usePathname()
-  const [isOpen, setIsOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const isActive = (path: string) => pathname === path
-  const isMentor = session?.user?.role === "mentor"
-  const isAdmin = session?.user?.role === "admin"
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" })
+  }
 
-  const navigation = [
-    { name: "Home", href: "/" },
-    //admin specific links
-    ...(status === "authenticated" && isAdmin
-      ? [{ name: "Admin Panel", href: "/admin", icon: Users }]
-      : //mentor and mentee specific links
-        status === "authenticated"
-        ? [
-            { name: "Profile", href: "/profile" },
-            { name: "Messages", href: "/messages", icon: MessageSquare },
-            {
-              name: isMentor ? "My Mentees" : "My Mentors",
-              href: isMentor ? "/mentees" : "/mentors",
-              icon: Users,
-            },
-            {
-              name: isMentor ? "Requests" : "Find Mentors",
-              href: isMentor ? "/requests" : "/search",
-            },
-          ]
-        : []),
-  ]
-
-  // Get initials for avatar fallback
-  const getInitials = () => {
-    if (!session?.user?.name) return "U"
-    return session.user.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2)
+  const getUserInitials = (name: string | null | undefined, email: string | null | undefined) => {
+    if (name) {
+      return name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    }
+    if (email) {
+      return email[0].toUpperCase()
+    }
+    return "U"
   }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center px-4">
-        <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="relative h-8 w-32 sm:w-40">
-              <Image src="/logo.png" alt="WIECA Mentor Connect" fill className="object-contain" priority />
-            </div>
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 hidden md:flex">
+          <Link href="/" className="mr-6 flex items-center space-x-2">
+            <span className="hidden font-bold sm:inline-block">Mentor Connect</span>
           </Link>
+          <nav className="flex items-center space-x-6 text-sm font-medium">
+            {session && (
+              <>
+                <Link href="/mentors" className="transition-colors hover:text-foreground/80 text-foreground/60">
+                  Find Mentors
+                </Link>
+                <Link href="/mentees" className="transition-colors hover:text-foreground/80 text-foreground/60">
+                  Find Mentees
+                </Link>
+                <Link href="/messages" className="transition-colors hover:text-foreground/80 text-foreground/60">
+                  Messages
+                </Link>
+                <Link href="/requests" className="transition-colors hover:text-foreground/80 text-foreground/60">
+                  Requests
+                </Link>
+              </>
+            )}
+          </nav>
         </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex mx-6 items-center space-x-4 lg:space-x-6">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`text-sm font-medium transition-colors hover:text-[#DB7C27] ${
-                isActive(item.href) ? "text-[#DB7C27]" : "text-muted-foreground"
-              }`}
-            >
-              {item.name}
+        <Button
+          variant="ghost"
+          className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          <span className="sr-only">Toggle Menu</span>
+        </Button>
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <div className="w-full flex-1 md:w-auto md:flex-none">
+            <Link href="/" className="flex items-center space-x-2 md:hidden">
+              <span className="font-bold">Mentor Connect</span>
             </Link>
-          ))}
-        </nav>
-
-        <div className="flex flex-1 items-center justify-end space-x-4">
-          {status === "authenticated" && <NotificationsPopover />}
-          {status === "authenticated" && isAdmin && <RealTimeNotifications />}
-          <ThemeToggle />
-
-          {status === "authenticated" ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={session.user.profileImage || "/placeholder.svg"} alt={session.user.name || ""} />
-                    <AvatarFallback>{getInitials()}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{session.user.name || session.user.email}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{session.user.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/messages">Messages</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href={isMentor ? "/mentees" : "/mentors"}>{isMentor ? "My Mentees" : "My Mentors"}</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href={isMentor ? "/requests" : "/search"}>
-                    {isMentor ? "Mentorship Requests" : "Find Mentors"}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer" onClick={() => signOut({ callbackUrl: "/" })}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <div className="hidden md:flex gap-2">
-              <Link href="/login">
-                <Button variant="ghost">Sign In</Button>
-              </Link>
-              <Link href="/register">
-                <Button className="bg-[#DB7C27] hover:bg-[#c06a1f]">Sign Up</Button>
-              </Link>
-            </div>
-          )}
-
-          {/* Mobile Menu */}
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" className="md:hidden" size="icon">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <div className="flex justify-center mb-6 mt-4">
-                <div className="relative h-8 w-40">
-                  <Image src="/logo.png" alt="WIECA Mentor Connect" fill className="object-contain" />
-                </div>
-              </div>
-              <nav className="flex flex-col gap-4">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`text-sm font-medium transition-colors hover:text-[#DB7C27] ${
-                      isActive(item.href) ? "text-[#DB7C27]" : "text-foreground"
-                    }`}
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <div className="flex items-center gap-2">
-                      {item.icon && <item.icon className="h-4 w-4" />}
-                      {item.name}
-                    </div>
-                  </Link>
-                ))}
-                {status === "unauthenticated" && (
-                  <>
-                    <Link href="/login" onClick={() => setIsOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        Sign In
-                      </Button>
-                    </Link>
-                    <Link href="/register" onClick={() => setIsOpen(false)}>
-                      <Button className="w-full bg-[#DB7C27] hover:bg-[#c06a1f]">Sign Up</Button>
-                    </Link>
-                  </>
-                )}
-                {status === "authenticated" && (
-                  <Button
-                    variant="ghost"
-                    className="justify-start text-red-500 hover:text-red-600 hover:bg-red-50 px-2"
-                    onClick={() => {
-                      setIsOpen(false)
-                      signOut({ callbackUrl: "/" })
-                    }}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
+          </div>
+          <nav className="flex items-center space-x-2">
+            <ThemeToggle />
+            {status === "loading" ? (
+              <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
+            ) : session ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={session.user?.image || ""} alt={session.user?.name || ""} />
+                      <AvatarFallback>{getUserInitials(session.user?.name, session.user?.email)}</AvatarFallback>
+                    </Avatar>
                   </Button>
-                )}
-              </nav>
-            </SheetContent>
-          </Sheet>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      {session.user?.name && <p className="font-medium">{session.user.name}</p>}
+                      {session.user?.email && (
+                        <p className="w-[200px] truncate text-sm text-muted-foreground">{session.user.email}</p>
+                      )}
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  {session.user?.role === "admin" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="flex items-center">
+                        <Shield className="mr-2 h-4 w-4" />
+                        Admin Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="flex items-center">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Button asChild variant="ghost">
+                  <Link href="/login">Sign in</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/register">Sign up</Link>
+                </Button>
+              </div>
+            )}
+          </nav>
         </div>
       </div>
+      {mobileMenuOpen && session && (
+        <div className="border-t md:hidden">
+          <nav className="flex flex-col space-y-3 p-4">
+            <Link
+              href="/mentors"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Find Mentors
+            </Link>
+            <Link
+              href="/mentees"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Find Mentees
+            </Link>
+            <Link
+              href="/messages"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Messages
+            </Link>
+            <Link
+              href="/requests"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Requests
+            </Link>
+          </nav>
+        </div>
+      )}
     </header>
   )
 }
