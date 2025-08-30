@@ -19,9 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Menu, LogOut, MessageSquare, Users } from "lucide-react"
 import { NotificationsPopover } from "@/components/notifications"
 import { RealTimeNotifications } from "@/components/real-time-notifications"
-import { UserButton } from "@auth0/nextjs-auth0/client"
 import { ThemeToggle } from "./theme-toggle"
-import { Bell } from "lucide-react"
 
 export default function Header() {
   const { data: session, status } = useSession()
@@ -95,6 +93,7 @@ export default function Header() {
         <div className="flex flex-1 items-center justify-end space-x-4">
           {status === "authenticated" && <NotificationsPopover />}
           {status === "authenticated" && isAdmin && <RealTimeNotifications />}
+          <ThemeToggle />
 
           {status === "authenticated" ? (
             <DropdownMenu>
@@ -204,15 +203,6 @@ export default function Header() {
               </nav>
             </SheetContent>
           </Sheet>
-        </div>
-
-        {/* New Desktop and Mobile Navigation Elements */}
-        <div className="ml-auto flex items-center space-x-4">
-          <RealTimeNotifications>
-            <Bell className="w-5 h-5" />
-          </RealTimeNotifications>
-          <ThemeToggle />
-          <UserButton />
         </div>
       </div>
     </header>

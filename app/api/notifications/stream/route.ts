@@ -1,9 +1,9 @@
 import type { NextRequest } from "next/server"
-import { getServerSession } from "next-auth/next"
+import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { connectToDatabase } from "@/lib/mongodb"
 
-export const maxDuration = 60 // Set the maximum duration to 1 minute
+export const maxDuration = 60 // Set to 60 seconds (valid range is 1-60)
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,160 +13,141 @@ export async function GET(request: NextRequest) {
       return new Response("Unauthorized", { status: 401 })
     }
 
-    const { db } = await connectToDatabase()
-
-    // Set up Server-Sent Events headers
-    const headers = new Headers({
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "Cache-Control",
-    })
+    const encoder = new TextEncoder()
 
     const stream = new ReadableStream({
       start(controller) {
         // Send initial connection message
-        controller.enqueue(
-          `data: ${JSON.stringify({
-            type: "connected",
-            message: "Real-time notifications connected",
-            timestamp: new Date().toISOString(),
-          })}\n\n`,
-        )
+        const data = `data: ${JSON.stringify({
+          type: "connected",
+          message: "Real-time notifications connected",
+          timestamp: new Date().toISOString(),
+        })}\n\n`
+        controller.enqueue(encoder.encode(data))
 
-        // Set up change streams for different collections
-        let conversationChangeStream: any
-        let userChangeStream: any
-        let mentorshipChangeStream: any
-
-        const setupChangeStreams = () => {
+        // Set up periodic heartbeat
+        const heartbeat = setInterval(() => {
           try {
-            conversationChangeStream = db
-              .collection("conversations")
-              .watch([{ $match: { "fullDocument.status": "flagged" } }])
-
-            userChangeStream = db
-              .collection("users")
-              .watch([{ $match: { operationType: { $in: ["insert", "update"] } } }])
-
-            mentorshipChangeStream = db
-              .collection("mentorshipRequests")
-              .watch([{ $match: { operationType: "insert" } }])
-
-            // Handle conversation changes
-            conversationChangeStream.on("change", (change) => {
-              if (change.operationType === "update" && change.fullDocument?.status === "flagged") {
-                controller.enqueue(
-                  `data: ${JSON.stringify({
-                    type: "conversation_flagged",
-                    message: "A conversation has been flagged for review",
-                    data: {
-                      conversationId: change.fullDocument._id.toString(),
-                      participants: change.fullDocument.participants?.length || 0,
-                    },
-                    timestamp: new Date().toISOString(),
-                  })}\n\n`,
-                )
-              }
-            })
-
-            // Handle user changes
-            userChangeStream.on("change", (change) => {
-              if (change.operationType === "insert") {
-                controller.enqueue(
-                  `data: ${JSON.stringify({
-                    type: "user_registered",
-                    message: `New user registered: ${change.fullDocument?.name || change.fullDocument?.email}`,
-                    data: {
-                      userId: change.fullDocument?._id.toString(),
-                      name: change.fullDocument?.name,
-                      email: change.fullDocument?.email,
-                      role: change.fullDocument?.role,
-                    },
-                    timestamp: new Date().toISOString(),
-                  })}\n\n`,
-                )
-              } else if (change.operationType === "update" && change.updateDescription?.updatedFields?.role) {
-                controller.enqueue(
-                  `data: ${JSON.stringify({
-                    type: "user_role_changed",
-                    message: `User role updated to ${change.updateDescription.updatedFields.role}`,
-                    data: {
-                      userId: change.documentKey._id.toString(),
-                      newRole: change.updateDescription.updatedFields.role,
-                    },
-                    timestamp: new Date().toISOString(),
-                  })}\n\n`,
-                )
-              }
-            })
-
-            // Handle mentorship request changes
-            mentorshipChangeStream.on("change", (change) => {
-              if (change.operationType === "insert") {
-                controller.enqueue(
-                  `data: ${JSON.stringify({
-                    type: "mentorship_request",
-                    message: "New mentorship request submitted",
-                    data: {
-                      requestId: change.fullDocument?._id.toString(),
-                      mentorId: change.fullDocument?.mentorId.toString(),
-                      menteeId: change.fullDocument?.menteeId.toString(),
-                    },
-                    timestamp: new Date().toISOString(),
-                  })}\n\n`,
-                )
-              }
-            })
-          } catch (error) {
-            console.error("Error setting up change streams:", error)
-            controller.enqueue(
-              `data: ${JSON.stringify({ type: "error", message: "Error setting up change streams" })}\n\n`,
-            )
-            cleanup() // Close streams on error
-          }
-        }
-
-        setupChangeStreams()
-
-        // Send heartbeat every 30 seconds
-        const heartbeatInterval = setInterval(() => {
-          controller.enqueue(
-            `data: ${JSON.stringify({
+            const heartbeatData = `data: ${JSON.stringify({
               type: "heartbeat",
               timestamp: new Date().toISOString(),
-            })}\n\n`,
-          )
-        }, 30000)
+            })}\n\n`
+            controller.enqueue(encoder.encode(heartbeatData))
+          } catch (error) {
+            console.error("Heartbeat error:", error)
+            clearInterval(heartbeat)
+            controller.close()
+          }
+        }, 30000) // Send heartbeat every 30 seconds
 
-        // Cleanup function
-        const cleanup = () => {
-          clearInterval(heartbeatInterval)
-          conversationChangeStream?.close()
-          userChangeStream?.close()
-          mentorshipChangeStream?.close()
+        // Set up MongoDB change streams
+        setupChangeStreams(controller, encoder).catch((error) => {
+          console.error("Change stream setup error:", error)
+        })
+
+        // Clean up on close
+        request.signal.addEventListener("abort", () => {
+          clearInterval(heartbeat)
           controller.close()
-        }
+        })
 
-        // Handle client disconnect
-        request.signal.addEventListener("abort", cleanup)
-
-        // Store cleanup function for later use
-        ;(controller as any).cleanup = cleanup
-      },
-
-      cancel() {
-        // Cleanup when stream is cancelled
-        if ((this as any).cleanup) {
-          ;(this as any).cleanup()
-        }
+        // Auto-close after 55 seconds to stay within the 60-second limit
+        setTimeout(() => {
+          clearInterval(heartbeat)
+          controller.close()
+        }, 55000)
       },
     })
 
-    return new Response(stream, { headers })
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET",
+        "Access-Control-Allow-Headers": "Cache-Control",
+      },
+    })
   } catch (error) {
-    console.error("Error setting up notification stream:", error)
+    console.error("Notification stream error:", error)
     return new Response("Internal Server Error", { status: 500 })
+  }
+}
+
+async function setupChangeStreams(controller: ReadableStreamDefaultController, encoder: TextEncoder) {
+  try {
+    const { db } = await connectToDatabase()
+
+    // Watch for changes in conversations collection
+    const conversationChangeStream = db
+      .collection("conversations")
+      .watch([{ $match: { "fullDocument.flagged": true } }])
+
+    conversationChangeStream.on("change", (change) => {
+      try {
+        const notification = {
+          type: "conversation_flagged",
+          data: change.fullDocument,
+          timestamp: new Date().toISOString(),
+        }
+
+        const data = `data: ${JSON.stringify(notification)}\n\n`
+        controller.enqueue(encoder.encode(data))
+      } catch (error) {
+        console.error("Conversation change stream error:", error)
+      }
+    })
+
+    // Watch for changes in users collection
+    const userChangeStream = db.collection("users").watch()
+
+    userChangeStream.on("change", (change) => {
+      try {
+        if (change.operationType === "insert") {
+          const notification = {
+            type: "new_user",
+            data: change.fullDocument,
+            timestamp: new Date().toISOString(),
+          }
+
+          const data = `data: ${JSON.stringify(notification)}\n\n`
+          controller.enqueue(encoder.encode(data))
+        }
+      } catch (error) {
+        console.error("User change stream error:", error)
+      }
+    })
+
+    // Watch for changes in mentorships collection
+    const mentorshipChangeStream = db.collection("mentorships").watch()
+
+    mentorshipChangeStream.on("change", (change) => {
+      try {
+        if (change.operationType === "insert" || change.operationType === "update") {
+          const notification = {
+            type: "mentorship_update",
+            data: change.fullDocument,
+            timestamp: new Date().toISOString(),
+          }
+
+          const data = `data: ${JSON.stringify(notification)}\n\n`
+          controller.enqueue(encoder.encode(data))
+        }
+      } catch (error) {
+        console.error("Mentorship change stream error:", error)
+      }
+    })
+  } catch (error) {
+    console.error("Failed to setup change streams:", error)
+    // Send error notification
+    const errorNotification = {
+      type: "error",
+      message: "Failed to setup real-time monitoring",
+      timestamp: new Date().toISOString(),
+    }
+
+    const data = `data: ${JSON.stringify(errorNotification)}\n\n`
+    controller.enqueue(encoder.encode(data))
   }
 }
