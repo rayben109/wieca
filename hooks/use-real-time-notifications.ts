@@ -1,42 +1,105 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { useSession } from "next-auth/react"
+import { useState, useEffect, useCallback, useRef } from "react"
 
-export interface RealTimeNotification {
-  type:
-    | "conversation_flagged"
-    | "user_registered"
-    | "user_role_changed"
-    | "mentorship_request"
-    | "connected"
-    | "heartbeat"
-  id?: string
+export interface Notification {
+  id: string
+  type: string
   message: string
-  timestamp: string
   data?: any
-  read?: boolean
+  timestamp: string
+  read: boolean
 }
 
 export function useRealTimeNotifications() {
-  const { data: session } = useSession()
-  const [notifications, setNotifications] = useState<RealTimeNotification[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
   const [isConnected, setIsConnected] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const eventSourceRef = useRef<EventSource | null>(null)
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const reconnectAttempts = useRef(0)
+  const maxReconnectAttempts = 5
 
-  const addNotification = useCallback((notification: RealTimeNotification) => {
-    if (notification.type === "connected" || notification.type === "heartbeat") {
-      setIsConnected(true)
-      return
+  const connect = useCallback(() => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close()
     }
 
-    setNotifications((prev) => {
-      const newNotification = { ...notification, read: false }
-      const updated = [newNotification, ...prev.slice(0, 49)] // Keep only last 50 notifications
-      return updated
-    })
+    const eventSource = new EventSource("/api/notifications/stream")
+    eventSourceRef.current = eventSource
 
-    setUnreadCount((prev) => prev + 1)
+    eventSource.onopen = () => {
+      setIsConnected(true)
+      reconnectAttempts.current = 0
+    }
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+
+        if (data.type === "heartbeat") {
+          return // Ignore heartbeat messages
+        }
+
+        if (data.type === "connected") {
+          return // Ignore connection messages
+        }
+
+        const notification: Notification = {
+          id: `${Date.now()}-${Math.random()}`,
+          type: data.type,
+          message: data.message,
+          data: data.data,
+          timestamp: data.timestamp,
+          read: false,
+        }
+
+        setNotifications((prev) => {
+          // Prevent duplicate notifications
+          const exists = prev.some(
+            (n) =>
+              n.type === notification.type &&
+              n.timestamp === notification.timestamp &&
+              JSON.stringify(n.data) === JSON.stringify(notification.data),
+          )
+
+          if (exists) return prev
+
+          const updated = [notification, ...prev].slice(0, 50) // Keep last 50 notifications
+          return updated
+        })
+
+        setUnreadCount((prev) => prev + 1)
+      } catch (error) {
+        console.error("Error parsing notification:", error)
+      }
+    }
+
+    eventSource.onerror = () => {
+      setIsConnected(false)
+      eventSource.close()
+
+      // Attempt to reconnect with exponential backoff
+      if (reconnectAttempts.current < maxReconnectAttempts) {
+        const delay = Math.pow(2, reconnectAttempts.current) * 1000 // 1s, 2s, 4s, 8s, 16s
+        reconnectTimeoutRef.current = setTimeout(() => {
+          reconnectAttempts.current++
+          connect()
+        }, delay)
+      }
+    }
+  }, [])
+
+  const disconnect = useCallback(() => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close()
+      eventSourceRef.current = null
+    }
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current)
+      reconnectTimeoutRef.current = null
+    }
+    setIsConnected(false)
   }, [])
 
   const markAsRead = useCallback((notificationId: string) => {
@@ -57,51 +120,12 @@ export function useRealTimeNotifications() {
   }, [])
 
   useEffect(() => {
-    if (!session?.user || session.user.role !== "admin") {
-      return
-    }
-
-    let eventSource: EventSource | null = null
-
-    const connectToStream = () => {
-      eventSource = new EventSource("/api/notifications/stream")
-
-      eventSource.onopen = () => {
-        setIsConnected(true)
-        console.log("Real-time notifications connected")
-      }
-
-      eventSource.onmessage = (event) => {
-        try {
-          const notification = JSON.parse(event.data) as RealTimeNotification
-          addNotification(notification)
-        } catch (error) {
-          console.error("Error parsing notification:", error)
-        }
-      }
-
-      eventSource.onerror = (error) => {
-        console.error("EventSource error:", error)
-        setIsConnected(false)
-
-        // Attempt to reconnect after 5 seconds
-        setTimeout(() => {
-          if (eventSource?.readyState === EventSource.CLOSED) {
-            connectToStream()
-          }
-        }, 5000)
-      }
-    }
-
-    connectToStream()
+    connect()
 
     return () => {
-      if (eventSource) {
-        eventSource.close()
-        setIsConnected(false)
-      }
+      disconnect()
     }
-  }, [session, addNotification])
+  }, [connect, disconnect])
 
   return {
     notifications,
@@ -110,5 +134,6 @@ export function useRealTimeNotifications() {
     markAsRead,
     markAllAsRead,
     clearNotifications,
+    reconnect: connect,
   }
 }

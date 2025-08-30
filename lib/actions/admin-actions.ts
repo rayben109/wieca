@@ -106,7 +106,6 @@ export async function updateUserRole(userId: string, newRole: "admin" | "mentor"
       return { success: false, error: "User not found or no changes made" }
     }
 
-    // This will trigger the change stream in the real-time notifications
     return { success: true }
   } catch (error) {
     console.error("Error updating user role:", error)
@@ -153,7 +152,6 @@ export async function createUser(userData: {
 
     const result = await db.collection("users").insertOne(newUser)
 
-    // This will trigger the change stream in the real-time notifications
     return {
       success: true,
       userId: result.insertedId.toString(),
@@ -293,7 +291,6 @@ export async function moderateConversation(conversationId: string, action: "appr
       return { success: false, error: "Conversation not found" }
     }
 
-    // This will trigger the change stream in the real-time notifications
     return { success: true }
   } catch (error) {
     console.error("Error moderating conversation:", error)
@@ -708,11 +705,115 @@ export async function getUsersAdmin() {
   }
 }
 
-export const getAllMentors = getUsersAdmin
-export const getAllMentees = getUsersAdmin
-export const createUserAdmin = createUser
-export const updateUserAdmin = updateUserRole
-export const deleteUserAdmin = deleteUser
+export async function getAllMentors() {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user || session.user.role !== "admin") {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    const { db } = await connectToDatabase()
+    const usersCollection = db.collection("users")
+    const profilesCollection = db.collection("profiles")
+
+    // Get all mentor users
+    const mentorUsers = await usersCollection
+      .find({
+        role: "mentor",
+        status: "active",
+      })
+      .toArray()
+
+    // Get profiles for mentors
+    const mentorIds = mentorUsers.map((user) => user._id)
+    const mentorProfiles = await profilesCollection
+      .find({
+        userId: { $in: mentorIds },
+      })
+      .toArray()
+
+    // Map mentors with their profiles
+    const mentors = mentorUsers.map((user) => {
+      const profile = mentorProfiles.find((p) => p.userId.toString() === user._id.toString())
+
+      return {
+        id: user._id.toString(),
+        name: user.name || profile?.name || user.email.split("@")[0],
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        createdAt: user.createdAt?.toISOString() || new Date().toISOString(),
+      }
+    })
+
+    return {
+      success: true,
+      users: mentors,
+    }
+  } catch (error) {
+    console.error("Get mentors error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to get mentors",
+    }
+  }
+}
+
+export async function getAllMentees() {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user || session.user.role !== "admin") {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    const { db } = await connectToDatabase()
+    const usersCollection = db.collection("users")
+    const profilesCollection = db.collection("profiles")
+
+    // Get all mentee users
+    const menteeUsers = await usersCollection
+      .find({
+        role: "mentee",
+        status: "active",
+      })
+      .toArray()
+
+    // Get profiles for mentees
+    const menteeIds = menteeUsers.map((user) => user._id)
+    const menteeProfiles = await profilesCollection
+      .find({
+        userId: { $in: menteeIds },
+      })
+      .toArray()
+
+    // Map mentees with their profiles
+    const mentees = menteeUsers.map((user) => {
+      const profile = menteeProfiles.find((p) => p.userId.toString() === user._id.toString())
+
+      return {
+        id: user._id.toString(),
+        name: user.name || profile?.name || user.email.split("@")[0],
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        createdAt: user.createdAt?.toISOString() || new Date().toISOString(),
+      }
+    })
+
+    return {
+      success: true,
+      users: mentees,
+    }
+  } catch (error) {
+    console.error("Get mentees error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to get mentees",
+    }
+  }
+}
 
 export async function getAllMentorships() {
   try {
@@ -1082,3 +1183,8 @@ export async function getUserProfiles(filter?: { role?: string }) {
   const res = await fetch(`/api/admin/user-profiles${filter?.role ? `?role=${filter.role}` : ""}`, { method: "GET" })
   return res.json()
 }
+
+// Additional aliases for compatibility
+export const createUserAdmin = createUser
+export const updateUserAdmin = updateUserRole
+export const deleteUserAdmin = deleteUser
