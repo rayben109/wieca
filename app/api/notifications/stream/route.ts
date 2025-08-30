@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { connectToDatabase } from "@/lib/mongodb"
 
-export const maxDuration = 180 // Set the maximum duration to 3 minutes
+export const maxDuration = 60 // Set the maximum duration to 1 minute
 
 export async function GET(request: NextRequest) {
   try {
