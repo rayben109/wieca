@@ -18,6 +18,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Menu, LogOut, MessageSquare, Users } from "lucide-react"
 import { NotificationsPopover } from "@/components/notifications"
+import { RealTimeNotifications } from "@/components/real-time-notifications"
 
 export default function Header() {
   const { data: session, status } = useSession()
@@ -32,25 +33,23 @@ export default function Header() {
     { name: "Home", href: "/" },
     //admin specific links
     ...(status === "authenticated" && isAdmin
-    ? [{ name: "Admin Panel", href: "/admin", icon: Users }]
-    : 
-    //mentor and mentee specific links
-    status === "authenticated"
-      ? [
-          { name: "Profile", href: "/profile" },
-          { name: "Messages", href: "/messages", icon: MessageSquare },
-          {
-            name: isMentor  ? "My Mentees" : "My Mentors",
-            href: isMentor  ? "/mentees" : "/mentors",
-            icon: Users,
-          },
-          {
-            name: isMentor  ? "Requests" : "Find Mentors",
-            href: isMentor  ? "/requests" : "/search",
-          },
-          
-        ]
-      : []),
+      ? [{ name: "Admin Panel", href: "/admin", icon: Users }]
+      : //mentor and mentee specific links
+        status === "authenticated"
+        ? [
+            { name: "Profile", href: "/profile" },
+            { name: "Messages", href: "/messages", icon: MessageSquare },
+            {
+              name: isMentor ? "My Mentees" : "My Mentors",
+              href: isMentor ? "/mentees" : "/mentors",
+              icon: Users,
+            },
+            {
+              name: isMentor ? "Requests" : "Find Mentors",
+              href: isMentor ? "/requests" : "/search",
+            },
+          ]
+        : []),
   ]
 
   // Get initials for avatar fallback
@@ -92,6 +91,7 @@ export default function Header() {
 
         <div className="flex flex-1 items-center justify-end space-x-4">
           {status === "authenticated" && <NotificationsPopover />}
+          {status === "authenticated" && isAdmin && <RealTimeNotifications />}
 
           {status === "authenticated" ? (
             <DropdownMenu>
