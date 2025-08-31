@@ -18,7 +18,7 @@ export default function AnalyticsPage() {
     const fetchData = async () => {
       setIsLoading(true)
       try {
-        const data = await getAnalyticsData(timeRange)
+        const data = await getAnalyticsData()
         setAnalyticsData(data)
       } catch (error) {
         console.error("Error fetching analytics data:", error)
@@ -47,27 +47,19 @@ export default function AnalyticsPage() {
     ],
   }
 
-  const mentorshipStatusData = {
-    labels: ["Active", "Pending", "Completed", "Declined"],
-    datasets: [
-      {
-        data: [65, 20, 10, 5],
-        backgroundColor: [
-          "rgba(75, 192, 192, 0.6)",
-          "rgba(255, 206, 86, 0.6)",
-          "rgba(54, 162, 235, 0.6)",
-          "rgba(255, 99, 132, 0.6)",
-        ],
-        borderColor: [
-          "rgba(75, 192, 192, 1)",
-          "rgba(255, 206, 86, 1)",
-          "rgba(54, 162, 235, 1)",
-          "rgba(255, 99, 132, 1)",
-        ],
-        borderWidth: 1,
-      },
-    ],
-  }
+  const mentorshipStatusData = [
+    { name: "Active", value: 65 },
+    { name: "Pending", value: 20 },
+    { name: "Completed", value: 10 },
+    { name: "Declined", value: 5 },
+  ]
+
+  const mentorshipStatusColors = [
+    "rgba(75, 192, 192, 0.6)",
+    "rgba(255, 206, 86, 0.6)",
+    "rgba(54, 162, 235, 0.6)",
+    "rgba(255, 99, 132, 0.6)",
+  ]
 
   const activityData = {
     labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
@@ -205,7 +197,7 @@ export default function AnalyticsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="h-80">
-                      <PieChart data={mentorshipStatusData} />
+                      <PieChart data={mentorshipStatusData} colors={mentorshipStatusColors} />
                     </div>
                   </CardContent>
                 </Card>
@@ -213,11 +205,21 @@ export default function AnalyticsPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>User Demographics</CardTitle>
-                    <CardDescription>Breakdown of users by industry and role</CardDescription>
+                      <PieChart data={mentorshipStatusData} colors={mentorshipStatusColors} />
                   </CardHeader>
                   <CardContent>
                     <div className="h-80">
-                      <BarChart data={userGrowthData} />
+                      <BarChart
+                        data={userGrowthData.datasets.map((dataset, idx) => ({
+                          label: dataset.label,
+                          value: dataset.data.reduce((a, b) => a + b, 0),
+                          backgroundColor: dataset.backgroundColor,
+                        }))}
+                        xAxisKey="label"
+                        yAxisKey="value"
+                        categories={userGrowthData.labels}
+                        colors={userGrowthData.datasets.map(ds => ds.backgroundColor)}
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -232,7 +234,20 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="h-96">
-                    <BarChart data={userGrowthData} />
+                    <BarChart
+                      data={userGrowthData.datasets.map((dataset, idx) =>
+                        dataset.data.map((value, i) => ({
+                          label: dataset.label,
+                          category: userGrowthData.labels[i],
+                          value,
+                          backgroundColor: dataset.backgroundColor,
+                        }))
+                      ).flat()}
+                      xAxisKey="category"
+                      yAxisKey="value"
+                      categories={userGrowthData.labels}
+                      colors={userGrowthData.datasets.map(ds => ds.backgroundColor)}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -246,7 +261,22 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="h-96">
-                    <LineChart data={activityData} />
+                    <LineChart
+                      data={activityData.datasets.map((dataset) =>
+                        activityData.labels.map((label, i) => ({
+                          label: dataset.label,
+                          category: label,
+                          value: dataset.data[i],
+                          borderColor: dataset.borderColor,
+                          backgroundColor: dataset.backgroundColor,
+                          tension: dataset.tension,
+                        }))
+                      ).flat()}
+                      xAxisKey="category"
+                      yAxisKey="value"
+                      categories={activityData.labels}
+                      colors={activityData.datasets.map(ds => ds.borderColor)}
+                    />
                   </div>
                 </CardContent>
               </Card>

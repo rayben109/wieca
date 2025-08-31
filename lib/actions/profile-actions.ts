@@ -12,7 +12,7 @@ export async function updateProfile(profileData: any) {
       return { success: false, error: "Not authenticated" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
 
     const result = await db.collection("users").updateOne(
       { _id: new ObjectId(session.user.id) },
@@ -44,7 +44,7 @@ export async function getProfile(userId?: string) {
       return { success: false, error: "User ID required" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
 
     const user = await db
       .collection("users")
@@ -75,7 +75,7 @@ export async function getUserProfiles() {
       return { success: false, error: "Admin access required" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
 
     const users = await db
       .collection("users")
@@ -142,7 +142,7 @@ export async function exportUserProfiles(userIds?: string[]) {
       return { success: false, error: "Admin access required" }
     }
 
-    const { db } = await connectToDatabase()
+    const db = await connectToDatabase()
 
     let query = {}
     if (userIds && userIds.length > 0) {
