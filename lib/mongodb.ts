@@ -21,32 +21,28 @@ const options: MongoClientOptions = {
   minPoolSize: 5, // Maintain minimum connections
 }
 
-let client
-let clientPromise: Promise<MongoClient>
+// Use a global variable so the client is preserved across module reloads caused by
+// HMR in development and reused across invocations of a warm serverless instance.
+const globalWithMongo = global as typeof globalThis & {
+  _mongoClientPromise?: Promise<MongoClient>
+}
 
-if (process.env.NODE_ENV === "development") {
-  // In development mode, use a global variable so that the value
-  // is preserved across module reloads caused by HMR (Hot Module Replacement).
-  const globalWithMongo = global as typeof globalThis & {
-    _mongoClientPromise?: Promise<MongoClient>
-  }
-
+// Returns the cached client promise, creating a new one if none exists.
+// A failed connection is cleared from the cache so the next call retries
+// instead of re-throwing the same rejected promise for the life of the instance.
+function getClientPromise(): Promise<MongoClient> {
   if (!globalWithMongo._mongoClientPromise) {
-    client = new MongoClient(uri, options)
+    const client = new MongoClient(uri, options)
     globalWithMongo._mongoClientPromise = client.connect().catch((error) => {
-      console.error("Failed to connect to MongoDB in development:", error)
+      console.error(`Failed to connect to MongoDB in ${process.env.NODE_ENV}:`, error)
+      globalWithMongo._mongoClientPromise = undefined
       throw error
     })
   }
-  clientPromise = globalWithMongo._mongoClientPromise
-} else {
-  // In production mode, it's best to not use a global variable.
-  client = new MongoClient(uri, options)
-  clientPromise = client.connect().catch((error) => {
-    console.error("Failed to connect to MongoDB in production:", error)
-    throw error
-  })
+  return globalWithMongo._mongoClientPromise
 }
+
+const clientPromise = getClientPromise()
 
 // Connection status tracking
 let isConnected = false
@@ -63,7 +59,7 @@ export async function connectToDatabase() {
     }
 
     lastConnectionAttempt = now
-    const client = await clientPromise
+    const client = await getClientPromise()
 
     // Test the connection with a ping
     await client.db("admin").command({ ping: 1 })
@@ -98,7 +94,7 @@ export async function checkDatabaseConnection() {
       }
     }
 
-    const client = await clientPromise
+    const client = await getClientPromise()
     await client.db("admin").command({ ping: 1 })
 
     return {
